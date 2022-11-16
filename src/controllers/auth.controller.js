@@ -47,7 +47,12 @@ export const signIn = async (req, res) => {
     const token = jwt.sign({id: userFound._id}, config.SECRET, { expiresIn: 86400 });
     console.log(userFound);
     
-    res.json({token})
+    res.json({
+        id:userFound._id,
+        email:userFound.email,
+        password:userFound.password,
+        accessToken:token
+    })
 };
 
 
