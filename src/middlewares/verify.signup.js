@@ -14,7 +14,7 @@ export const checkRolesExists = (req, res, next) =>{
     if(req.body.roles){
         for(let i=0; i<req.body.roles.length; i++){
             if(!ROLES.includes(req.body.roles[i])){
-                return res.status(404).json({message: `Rols ${req.body.roles[i]} doesnt exist`})
+                return res.status(404).json({message: `Rols ${req.body.roles[i]} doesn't exist`})
             } 
         }
     }

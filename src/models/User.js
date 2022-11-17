@@ -4,16 +4,26 @@ import bcrypt from "bcryptjs";
 const userSchema = new Schema({
     email:{
         type: String,
+        required: true,
         unique: true
     },
     password:{
         type: String,
-        unique: true
+        required: true,
     },
+    firstname: { type: String, required: true, trim: true},
+    lastname: { type: String, required: true, trim: true},
+    yearOfBirth: {type: Number, required: true},
+    gender: {type:String, required: true},
+    address: { type: String, trim: true},
     roles:[{
         ref: 'Role',
         type: Schema.Types.ObjectId
-    }]
+    }], 
+    systemRole:{
+        ref: 'Role',
+        type: Schema.Types.ObjectId
+    }
 },{
     timestamps: true,
     versionKey: false
