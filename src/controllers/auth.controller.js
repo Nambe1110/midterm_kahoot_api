@@ -20,9 +20,8 @@ export const signUp = async (req, res) => {
 
     if(alredyUserExist) return res.status(400).json({ message: "user already exists"});
 
-    const role = await Role.findOne({name: 'user'})
-    newUser.roles = [role._id];
-    console.log(newUser.roles);
+    const systemRole = await Role.findOne({name: 'user'})
+    newUser.systemRole = systemRole._id;
     
     const savedUser = await newUser.save();
     console.log(savedUser);
@@ -40,7 +39,7 @@ export const signUp = async (req, res) => {
 }
 export const signIn = async (req, res) => {
     
-    const userFound = await User.findOne({email: req.body.email}).populate("roles");
+    const userFound = await User.findOne({email: req.body.email}).populate("systemRole");
     if(!userFound) return res.status(404).json({message: "user not found"})
 
     const matchPassword = await User.comparePassword(req.body.password, userFound.password);

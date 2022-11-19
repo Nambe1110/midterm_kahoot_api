@@ -26,27 +26,10 @@ export const verifyToken = async (req, res, next) => {
 
 export const isAdmin = async (req, res, next)=> {
     const user = await User.findById(req.userId);
-    const roles = await Role.find({_id: {$in: user.roles}});
-    console.log(roles[0]);
-    for(let i=0; i<roles.length; i++) {
-        if (roles[i].name === "admin"){
-            next();
-            return;
-        }
+    const systemRole = await Role.find({_id: {$in: user.systemRole}});
+    if (systemRole.name === "admin"){
+        next();
+        return;
     }
     return res.status(403).json({message: "requested admin role"})
-
-}
-
- export const isModerator = async (req, res, next)=> {
-    const user = await User.findById(req.userId);
-    const roles = await Role.find({_id: {$in: user.roles}});
-
-    for(const i=0; i<roles.length; i++) {
-        if (roles[i].name === "moderator"){
-            next();
-            return;
-        }
-    }
-    return res.status(403).json({message: "requested moderator role"})
 }
