@@ -1,14 +1,13 @@
 import { Router } from "express";
 const router = Router();
-
 import * as groupsCtrl from "../controllers/group.controller.js";
-import { authJwt } from "../middlewares/index.js";
+import { authJwt, upload } from "../middlewares/index.js";
 
-router.post('/create', groupsCtrl.createGroup);
-router.get('/all', groupsCtrl.getAllGroups);
-router.get('/:groupId', groupsCtrl.getGroupById);
-router.get('/:name', groupsCtrl.getGroupByName);
-router.put('/:groupId', [authJwt.verifyToken, authJwt.isAdmin], groupsCtrl.updateGroupById);
-router.delete('/:groupId', [authJwt.verifyToken, authJwt.isAdmin], groupsCtrl.deleteGroupById);
+router.post('/create', [authJwt.verifyToken, upload.any()], groupsCtrl.createGroup);
+router.get('/all', authJwt.verifyToken, groupsCtrl.getGroups);
+router.get('/:groupId',  groupsCtrl.getGroupById);
+router.get('/:name', authJwt.verifyToken, groupsCtrl.getGroupByName);
+router.post('/', [authJwt.verifyToken, authJwt.isAdmin, upload.any()], groupsCtrl.updateGroupNameById);
+router.post('/delete', [authJwt.verifyToken], groupsCtrl.deleteGroupById);
 
 export default router;

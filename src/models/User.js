@@ -17,7 +17,7 @@ const userSchema = new Schema({
     gender: {type:String, required: true},
     address: { type: String, trim: true},
     roles:[{
-        ref: 'Role',
+        ref: 'Group',
         type: Schema.Types.ObjectId
     }], 
     systemRole:{

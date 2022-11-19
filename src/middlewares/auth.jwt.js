@@ -3,16 +3,14 @@ import User from '../models/User.js';
 import jwt from 'jsonwebtoken';
 import Role from '../models/Role.js';
 
-export const verifyToken = async (req, res, next) => {
-    
+export const verifyToken = async (req, res, next) => { 
     try {
         const token = req.headers["x-access-token"];
-       /*  console.log(token); */
         if (!token)  return res.status(403).json({ message: "No token provided" });
 
         const decoded = jwt.verify(token, config.SECRET);
         req.userId = decoded.id;
-        /* console.log(req.userId); */
+        
 
         const user = await User.findById(req.userId, { password: 0 });
         if (!user) return res.status(404).json({ message: "User not found" });
@@ -26,7 +24,8 @@ export const verifyToken = async (req, res, next) => {
 
 export const isAdmin = async (req, res, next)=> {
     const user = await User.findById(req.userId);
-    const systemRole = await Role.find({_id: {$in: user.systemRole}});
+    console.log(req.userId); 
+    const systemRole = await Role.findOne({_id: {$in: user.systemRole}});
     if (systemRole.name === "admin"){
         next();
         return;
