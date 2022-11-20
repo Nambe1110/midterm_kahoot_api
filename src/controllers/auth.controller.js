@@ -1,7 +1,10 @@
 import User from '../models/User.js';
+import Token from '../models/Token.js';
 import jwt from 'jsonwebtoken';
+import crypto from 'crypto';
 import config from '../config.js';
 import Role from '../models/Role.js';
+import sendEmail from '../utils/email.js';
 
 export const signUp = async (req, res) => {
     const { email, password, firstname, lastname, yearOfBirth, gender, address } = req.body;
@@ -26,15 +29,21 @@ export const signUp = async (req, res) => {
     const savedUser = await newUser.save();
     console.log(savedUser);
 
-    const token = jwt.sign({id: savedUser._id}, config.SECRET, {
+    const jwtToken = jwt.sign({id: savedUser._id}, config.SECRET, {
         expiresIn: 86400
-    })
-    
+    });
+
+    let activateToken = await new Token({
+        userId: savedUser._id,
+        token: crypto.randomBytes(32).toString("hex"),
+    }).save();
+  
+        const message = `Please follow this link to activate your Dlm Elearning account ${process.env.LOCAL_BASE_URL}/api/user/verify/${savedUser._id}/${activateToken.token}`;
+        await sendEmail(savedUser.email, "Dln Elearning Application - Activate account", message);
+
     res.status(200).json({
         status: 'success',
-        data: { 
-            accessToken:token
-        }
+        message: 'An Email sent to your registered email account to activate your account. Please follow the provided link to activate your account'
     })
 }
 export const signIn = async (req, res) => {
