@@ -34,12 +34,11 @@ export const getGroups = async (req, res) => {
 }
 
 export const getGroupById = async (req, res) => {
-    const Group = await Group.findById(req.query.groupId);
-    console.log(req.params.groupId);
+    const group = await Group.findById(req.params.groupId);
     res.status(200).json({
         status: 'success',
         data: { 
-            Group
+            group
         }
     })
 }
