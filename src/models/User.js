@@ -16,6 +16,7 @@ const userSchema = new Schema({
     yearOfBirth: {type: Number, required: true},
     gender: {type:String, required: true},
     address: { type: String, trim: true},
+    avatar: {type:String, default: 'https://shop.phuongdonghuyenbi.vn/wp-content/uploads/avatars/1510/default-avatar-bpthumb.png'},
     roles:{
         owner:[{
             ref: 'Group',
@@ -33,7 +34,8 @@ const userSchema = new Schema({
     systemRole:{
         ref: 'Role',
         type: Schema.Types.ObjectId
-    }
+    },
+    isActivated: { type:Boolean, required: true, default: false}
 },{
     timestamps: true,
     versionKey: false
