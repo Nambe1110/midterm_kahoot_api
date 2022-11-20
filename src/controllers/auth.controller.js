@@ -4,28 +4,25 @@ import config from '../config.js';
 import Role from '../models/Role.js';
 
 export const signUp = async (req, res) => {
-    const { email, password, roles } = req.body;
+    const { email, password, firstname, lastname, yearOfBirth, gender, address } = req.body;
     
     const newUser = new User({
         email,
-        password: await User.encryptPassword(password)
+        password: await User.encryptPassword(password),
+        firstname,
+        lastname,
+        yearOfBirth,
+        gender,
+        address
     })
 
     const alredyUserExist = await User.findOne({ email: newUser.email});
 
     if(alredyUserExist) return res.status(400).json({ message: "user already exists"});
 
-
-    /* console.log(roles); */
-    if(roles){  
-        const foundRoles = await Role.find({name: {$in: roles}})
-        newUser.roles = foundRoles.map(role => role._id)
-    }else{
-        const role = await Role.findOne({name: 'user'})
-        newUser.roles = [role._id];
-        console.log(newUser.roles);
-    }
-
+    const systemRole = await Role.findOne({name: 'user'})
+    newUser.systemRole = systemRole._id;
+    
     const savedUser = await newUser.save();
     console.log(savedUser);
 
@@ -33,12 +30,17 @@ export const signUp = async (req, res) => {
         expiresIn: 86400
     })
     
-    res.status(200).json({token});
+    res.status(200).json({
+        status: 'success',
+        data: { 
+            accessToken:token
+        }
+    })
 }
 export const signIn = async (req, res) => {
     
-    const userFound = await User.findOne({email: req.body.email}).populate("roles");
-    if(!userFound) return res.status(400).json({message: "user not found"})
+    const userFound = await User.findOne({email: req.body.email}).populate("systemRole");
+    if(!userFound) return res.status(404).json({message: "user not found"})
 
     const matchPassword = await User.comparePassword(req.body.password, userFound.password);
 
@@ -47,11 +49,14 @@ export const signIn = async (req, res) => {
     const token = jwt.sign({id: userFound._id}, config.SECRET, { expiresIn: 86400 });
     console.log(userFound);
     
-    res.json({
-        id:userFound._id,
-        email:userFound.email,
-        password:userFound.password,
-        accessToken:token
+    res.status(200).json({
+        status: 'success',
+        data: { 
+            id:userFound._id,
+            email:userFound.email,
+            password:userFound.password,
+            accessToken:token
+        }
     })
 };
 
