@@ -16,10 +16,20 @@ const userSchema = new Schema({
     yearOfBirth: {type: Number, required: true},
     gender: {type:String, required: true},
     address: { type: String, trim: true},
-    roles:[{
-        ref: 'Group',
-        type: Schema.Types.ObjectId
-    }], 
+    roles:{
+        owner:[{
+            ref: 'Group',
+            type: Schema.Types.ObjectId
+        }],
+        co_owner:[{
+            ref: 'Group',
+            type: Schema.Types.ObjectId
+        }],
+        member:[{
+            ref: 'Group',
+            type: Schema.Types.ObjectId
+        }]
+    }, 
     systemRole:{
         ref: 'Role',
         type: Schema.Types.ObjectId
