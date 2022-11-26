@@ -38,12 +38,12 @@ export const signUp = async (req, res) => {
         token: crypto.randomBytes(32).toString("hex"),
     }).save();
   
-    const message = ` Hi ${savedUser.firstname},
-                    Thank you for registering Dln Learning Application. Your account is ready.
+    const message = ` Hi ${savedUser.firstname}, <br>
+                    Thank you for registering Dln Learning Application. Your account is ready. <br>
     Please follow this link to activate your Dln Elearning account ${process.env.HOST_URL}/api/user/verify/${savedUser._id}/${activateToken.token}
-    
-    Best regards,
-    Dln Learning Application Team
+    <br>
+    Best regards, <br>
+    Dln Learning Application Team <br>
     `;
 
     await Email.send({
