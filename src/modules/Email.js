@@ -6,7 +6,6 @@ const origin = "https://developers.google.com/oauthplayground";
 
 class EmailModule {
   async send({
-    sender, // Email of sender
     html, // Html content
     receiver, // Email of receiver
     subject, // Title

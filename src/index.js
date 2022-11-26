@@ -18,14 +18,6 @@ app.use(express.json());
 import route from './routes/index.js'
 route(app);
 
-import { Email } from './modules/Email.js';
-await Email.send({
-  sender: 'dlnelearningapp@gmail.com',
-  html: 'hello',
-  receiver: 'trantanloc2111@gmail.com',
-  subject: 'xin chao',
-})
-
 const PORT = process.env.PORT || 8080;
 app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
