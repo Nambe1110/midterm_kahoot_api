@@ -1,4 +1,5 @@
 import User from "../models/User.js";
+import Token from "../models/Token.js";
 
 export const getUsers = async (req, res) => {
     const Users = await User.find();
@@ -62,20 +63,23 @@ export const deleteUserById = async (req, res) => {
 
 export const activateAccountByToken = async (req, res) => {
     try {
-        const user = await User.findOne({ _id: req.params.id });
-        if (!user) return res.status(400).send("Invalid link");
+        const user = await User.findById(req.params.userId);
+        console.log(req.params.userId);
+        console.log( req.params.token)
+        if (!user) return res.status(400).send("Invalid user");
     
         const token = await Token.findOne({
             userId: user._id,
             token: req.params.token,
         });
-        if (!token) return res.status(400).send("Invalid link");
+        if (!token) return res.status(400).send("Invalid token");
     
-        await User.updateOne({ _id: user._id, isActivated: true });
-        await Token.findByIdAndRemove(token._id);
+        await User.findByIdAndUpdate(user._id, {isActivated: true}, { new: true } );
+        await Token.findByIdAndDelete(token._id);
     
-        res.send("email verified sucessfully");
+        res.send("Email verified sucessfully");
     } catch (error) {
         res.status(400).send("An error occured");
+        console.log(error);
     }
 }
