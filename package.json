@@ -7,7 +7,7 @@
   "scripts": {
     "build": "babel src --out-dir build",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node  ./build/index.js",
+    "start": "node ./build/index.js",
     "server": "nodemon ./src/index.js",
     "debug": "set DEBUG=express:* & nodemon ./src/index.js"
   },

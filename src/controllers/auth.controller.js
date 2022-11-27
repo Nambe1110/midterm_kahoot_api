@@ -39,10 +39,11 @@ export const signUp = async (req, res) => {
     }).save();
   
     const message = ` Hi ${savedUser.firstname}, <br>
-                    Thank you for registering Dln Learning Application. Your account is ready. <br>
-                    Please follow this link to activate your Dln Elearning account ${process.env.HOST_URL}/api/user/verify/${savedUser._id}/${activateToken.token}
-                    
-                    Best regards, <br>
+                    <br>Thank you for registering Dln Learning Application. Your account is ready. <br>
+                    Please follow this link to activate your Dln Elearning account: <a href="${process.env.HOST_URL}/api/user/verify/${savedUser._id}/${activateToken.token}">Verify account link </a>  <br>
+                    <br>If you don't sign up for a Dln Learning account, please disregard this email. <br>
+                    Sorry for your time. <br>
+                    <br>Best regards, <br>
                     Dln Learning Application Team <br>
     `;
 

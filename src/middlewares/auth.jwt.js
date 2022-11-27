@@ -2,6 +2,7 @@ import config from '../config.js';
 import User from '../models/User.js';
 import jwt from 'jsonwebtoken';
 import Role from '../models/Role.js';
+import Group from '../models/Group.js';
 
 export const verifyToken = async (req, res, next) => { 
     try {
@@ -32,3 +33,28 @@ export const isAdmin = async (req, res, next)=> {
     }
     return res.status(403).json({message: "requested admin role"})
 }
+
+export const isOwnerOfGroup = async (req, res, next)=> {
+    const user = await User.findById(req.userId);
+    const roleOfUser = user.roles;
+
+    let index =  roleOfUser.owner.indexOf(req.body.groupId);
+    if (index > -1){
+        next();
+        return;
+    }
+    return res.status(403).json({message: "requested owner role of this group"})
+}
+
+export const isCoOwnerOfGroup= async (req, res, next)=> {
+    const user = await User.findById(req.userId);
+    const roleOfUser = user.roles;
+
+    let index =  roleOfUser.co_owner.indexOf(req.body.groupId);
+    if (index > -1){
+        next();
+        return;
+    }
+    return res.status(403).json({message: "requested co-owner role of this group"})
+}
+
