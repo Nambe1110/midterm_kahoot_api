@@ -15,5 +15,6 @@ router.patch('/memeber/add', [authJwt.verifyToken, ], groupsCtrl.addMemebers);
 router.patch('/memeber/toCoowner', [authJwt.verifyToken, ], groupsCtrl.toCoOwner);
 router.patch('/memeber/remove', [authJwt.verifyToken, ], groupsCtrl.removeMemebers);
 router.delete('/delete', [authJwt.verifyToken], groupsCtrl.deleteGroupById);
+router.get('/join/:groupId', [authJwt.verifyToken], groupsCtrl.joinByGroupId)
 
 export default router;
