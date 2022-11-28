@@ -337,3 +337,44 @@ export const toMember = async (req, res) => {
         console.log(error);
     }
 }
+
+export const addMemberViaLink = async (req, res) => {
+    try {
+        const group = await Group.findById(req.body.groupId);
+        if(!group) return res.status(404).json({ message: "Group doesn't exist"});
+        if(req.userId == group.owner_id) {
+            return res.status(404).json({ message: "Failed to invite. User is owner of this group"});
+        }
+        const user = await User.findById(req.userId);
+        if(!user) return res.status(404).json({ message: "User doesn't exist"});
+
+        // Add userid to the memeberId array of group table
+        let i =  group.member_id.indexOf(user._id);
+        if (i > -1) { 
+            return res.status(404).json({ message: "User is already a member of this group."});
+        }
+        i =  group.co_owner_id.indexOf(user._id);
+        if (i > -1) { 
+            return res.status(404).json({ message: "User is already a coowner of this group.  Please change him/her to member role"});
+        }
+        group.member_id.push(user._id);
+        const updatedGroup = await Group.findByIdAndUpdate(group._id, {
+            member_id: group.member_id
+        }, { new: true })
+
+        // Add groupId to the roles.member array of user table
+        const roleOfUser = user.roles;
+        let index =  roleOfUser.member.indexOf(group._id);
+        if (index <= -1) { 
+            roleOfUser.member.push(group._id);
+        }
+        const updatedUser = await User.findByIdAndUpdate(user._id ,{roles: roleOfUser}, { new: true })
+
+        res.status(200).json({
+            status: 'success',
+            updatedGroup
+        });
+    } catch (error) {
+        console.log(error);
+    }
+}
