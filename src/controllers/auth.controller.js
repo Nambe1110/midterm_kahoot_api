@@ -69,6 +69,8 @@ export const signIn = async (req, res) => {
     const token = jwt.sign({id: userFound._id}, config.SECRET, { expiresIn: 86400 });
     console.log(userFound);
     
+    if (!userFound.isActivated) return res.status(401).json({message: "user is not activated"})
+    
     res.status(200).json({
         status: 'success',
         data: { 
