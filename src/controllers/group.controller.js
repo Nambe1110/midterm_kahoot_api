@@ -83,3 +83,14 @@ export const deleteGroupById = async (req, res) => {
         status: 'success',
     });
 }
+
+export const joinByGroupId = async (req, res) => {
+    const group = await Group.findById(req.params.groupId);
+    if(!group) return res.status(404).json({ message: "Group doesn't exist"});
+    if (group.member_id.includes(req.userId) || group.co_owner_id.includes(req.userId) || group.owner_id === req.userId) {
+        return res.status(401).json({ message: "User already existed in group"});
+    }
+    group.member_id.push(req.userId);
+    const updatedGroup = await group.save();
+    return res.status(200).json(updatedGroup)
+}

@@ -9,5 +9,6 @@ router.get('/:groupId', authJwt.verifyToken, groupsCtrl.getGroupById);
 router.patch('/name', [authJwt.verifyToken, ], groupsCtrl.updateGroupNameById);
 router.patch('/image', [authJwt.verifyToken, upload.any()], groupsCtrl.updateGroupImageById);
 router.delete('/delete', [authJwt.verifyToken], groupsCtrl.deleteGroupById);
+router.get('/join/:groupId', [authJwt.verifyToken], groupsCtrl.joinByGroupId)
 
 export default router;
