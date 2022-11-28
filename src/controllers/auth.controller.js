@@ -66,7 +66,10 @@ export const signIn = async (req, res) => {
 
     if(!matchPassword) return res.status(401).json({ token: null, message: "Invalid password"});
 
-    const token = jwt.sign({id: userFound._id}, config.SECRET, { expiresIn: 86400 });
+    const token = jwt.sign({id: userFound._id}, config.SECRET, { 
+            // expiresIn: 86400 
+        }
+    );
     console.log(userFound);
     
     if (!userFound.isActivated) return res.status(401).json({message: "user is not activated"})

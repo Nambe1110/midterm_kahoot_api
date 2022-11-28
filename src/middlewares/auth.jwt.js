@@ -37,7 +37,7 @@ export const isAdmin = async (req, res, next)=> {
 export const isOwnerOfGroup = async (req, res, next)=> {
     const user = await User.findById(req.userId);
     const roleOfUser = user.roles;
-
+    console.log(user);
     let index =  roleOfUser.owner.indexOf(req.body.groupId);
     if (index > -1){
         next();
@@ -56,5 +56,30 @@ export const isCoOwnerOfGroup= async (req, res, next)=> {
         return;
     }
     return res.status(403).json({message: "requested co-owner role of this group"})
+}
+
+export const isOwnerOrCoOwner= async (req, res, next)=> {
+    const user = await User.findById(req.userId);
+    const roleOfUser = user.roles;
+
+    let index1 =  roleOfUser.owner.indexOf(req.body.groupId);
+    let index2 =  roleOfUser.co_owner.indexOf(req.body.groupId);
+    if (index1 > -1 || index2 > -1){
+        next();
+        return;
+    }
+    return res.status(403).json({message: "requested owner or co-owner role of this group"})
+}
+
+export const isMemberOfGroup= async (req, res, next)=> {
+    const user = await User.findById(req.userId);
+    const roleOfUser = user.roles;
+
+    let index =  roleOfUser.member.indexOf(req.body.groupId);
+    if (index > -1){
+        next();
+        return;
+    }
+    return res.status(403).json({message: "requested memeber role of this group"})
 }
 
