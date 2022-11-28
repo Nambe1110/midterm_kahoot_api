@@ -371,8 +371,7 @@ export const addMemberViaLink = async (req, res) => {
         const updatedUser = await User.findByIdAndUpdate(user._id ,{roles: roleOfUser}, { new: true })
 
         res.status(200).json({
-            status: 'success',
-            updatedGroup
+            ...updatedGroup
         });
     } catch (error) {
         console.log(error);

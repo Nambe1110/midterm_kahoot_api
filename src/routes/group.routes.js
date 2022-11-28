@@ -4,7 +4,7 @@ import * as groupsCtrl from "../controllers/group.controller.js";
 import { authJwt, upload } from "../middlewares/index.js";
 
 router.post('/create', [authJwt.verifyToken], groupsCtrl.createGroup);
-router.get('/all', [authJwt.verifyToken, authJwt.isAdmin], groupsCtrl.getGroups);
+router.get('/all', [authJwt.verifyToken], groupsCtrl.getGroups);
 router.get('/:groupId', authJwt.verifyToken, groupsCtrl.getGroupById);
 router.get('/join/:groupId', [authJwt.verifyToken], groupsCtrl.addMemberViaLink);
 router.patch('/name', [authJwt.verifyToken, authJwt.isOwnerOfGroup ], groupsCtrl.updateGroupNameById);
