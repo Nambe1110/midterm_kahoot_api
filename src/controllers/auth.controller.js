@@ -15,7 +15,7 @@ export const signUp = async (req, res) => {
         firstname,
         lastname,
         yearOfBirth,
-        gender,
+        gender: gender ?? 'male',
         address
     })
 
