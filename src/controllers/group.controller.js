@@ -383,6 +383,10 @@ export const addMemberViaLink = async (req, res) => {
 }
 
 export const sendInviteLink = async (req, res) => {
+    const user = await User.find({email: req.body.email})
+    if (user.length === 0) {
+        return res.status(401).json({message: "User not found with given email!"})
+    }
     try {
         Email.send({
             html: 'Click this link to join group: https://group-master.vercel.app/group/join/' + req.body.groupId,
