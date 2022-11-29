@@ -1,5 +1,6 @@
 import Group from "../models/Group.js";
 import User from "../models/User.js";
+import { Email } from "../modules/Email.js";
 
 export const createGroup = async (req, res) => {
     const {name} = req.body;
@@ -373,6 +374,19 @@ export const addMemberViaLink = async (req, res) => {
         res.status(200).json({
             ...updatedGroup
         });
+    } catch (error) {
+        console.log(error);
+    }
+}
+
+export const sendInviteLink = async (req, res) => {
+    try {
+        Email.send({
+            html: 'Click this link to join group: https://group-master.vercel.app/group/join/' + req.body.groupId,
+            receiver: req.body.email,
+            subject: 'DLN-Elearning invitation'
+        })
+        res.status(200).json({ message: 'Send invitation successfully' })
     } catch (error) {
         console.log(error);
     }
