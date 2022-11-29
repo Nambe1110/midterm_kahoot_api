@@ -1,5 +1,6 @@
 import User from "../models/User.js";
 import Token from "../models/Token.js";
+import Group from "../models/Group.js";
 
 export const getUsers = async (req, res) => {
     const Users = await User.find();
@@ -13,6 +14,11 @@ export const getUsers = async (req, res) => {
 
 export const getMe = async (req, res) => {
     const me = await User.findById({ _id: req.userId});
+    const groups = await Group.find();
+    me.roles.owner = groups.filter(group => me.roles.owner.includes(group._id));
+    me.roles.co_owner = groups.filter(group => me.roles.co_owner.includes(group._id));
+    me.roles.member = groups.filter(group => me.roles.member.includes(group._id));
+
     res.status(200).json({
         status: 'success',
         data: {
@@ -24,6 +30,10 @@ export const getMe = async (req, res) => {
 export const getUserById = async (req, res) => {
     const user = await User.findById(req.params.userId);
     if(!user) return res.status(404).json({ message: "User doesn't exist"});
+    const groups = await Group.find();
+    user.roles.owner = groups.filter(group => user.roles.owner.includes(group._id));
+    user.roles.co_owner = groups.filter(group => user.roles.co_owner.includes(group._id));
+    user.roles.member = groups.filter(group => user.roles.member.includes(group._id));
 
     res.status(200).json({
         status: 'success',
