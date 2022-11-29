@@ -12,7 +12,7 @@ export const getUsers = async (req, res) => {
 }
 
 export const getMe = async (req, res) => {
-    const me = await User.find({ _id: req.userId});
+    const me = await User.findById({ _id: req.userId});
     res.status(200).json({
         status: 'success',
         data: {
