@@ -39,10 +39,7 @@ export const getGroups = async (req, res) => {
 export const getGroupById = async (req, res) => {
     const group = await Group.findById(req.params.groupId);
     if(!group) return res.status(404).json({ message: "Group doesn't exist"});
-    const users = await User.find();
-    group.owner_id = await User.findById(group.owner_id);
-    group.co_owner_id = users.filter(user => group.co_owner_id.includes(user._id));
-    group.member_id = users.filter(user => group.member_id.includes(user._id));
+
     res.status(200).json({
         status: 'success',
         data: { 
