@@ -34,7 +34,8 @@ const userSchema = new Schema({
         ref: 'Role',
         type: Schema.Types.ObjectId
     },
-    isActivated: { type:Boolean, required: true, default: false}
+    isActivated: { type:Boolean, required: true, default: false},
+    googleId: String,
 },{
     timestamps: true,
     versionKey: false

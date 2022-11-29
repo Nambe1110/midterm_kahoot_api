@@ -1,6 +1,7 @@
 import User from "../models/User.js";
 import Token from "../models/Token.js";
 import Group from "../models/Group.js";
+import { Email } from '../modules/Email.js';
 
 export const getUsers = async (req, res) => {
     const Users = await User.find();
@@ -98,6 +99,18 @@ export const activateAccountByToken = async (req, res) => {
         await Token.findByIdAndDelete(token._id);
     
         res.send("Email verified sucessfully");
+
+        const message = ` Hi ${savedUser.firstname}, <br>
+                    <br>Your account has been activated successfully. Thank you for using Dln Learning Application <br>
+                    <br>Best regards, <br>
+                    Dln Learning Application Team <br>
+    `;
+
+        await Email.send({
+            html: message,
+            receiver: user.email,
+            subject: 'Dln Elearning Application - Activate account',
+        })
     } catch (error) {
         res.status(400).send("An error occured");
         console.log(error);

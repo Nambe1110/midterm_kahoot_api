@@ -5,6 +5,7 @@ import crypto from 'crypto';
 import config from '../config.js';
 import Role from '../models/Role.js';
 import { Email } from '../modules/Email.js';
+import passport from 'passport';
 
 export const signUp = async (req, res) => {
     const { email, password, firstname, lastname, yearOfBirth, gender, address } = req.body;
@@ -57,6 +58,7 @@ export const signUp = async (req, res) => {
         message: 'An Email sent to your registered email account to activate your account. Please follow the provided link to activate your account'
     })
 }
+
 export const signIn = async (req, res) => {
     
     const userFound = await User.findOne({email: req.body.email}).populate("systemRole");
@@ -86,3 +88,15 @@ export const signIn = async (req, res) => {
 };
 
 
+export const googleSignIn = async (req, res) => {
+    passport.authenticate('google', {
+        scope: ['profile', 'email']
+    });
+}
+
+export const getGoogleResponse = async (req, res) => {
+    passport.authenticate('google', { failureRedirect: '/error', session: false }), (req, res) => {
+        // Successful authentication, redirect success.
+        res.redirect('/api/user/current_user');
+    }
+}
