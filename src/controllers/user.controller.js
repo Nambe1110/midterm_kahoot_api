@@ -16,7 +16,7 @@ export const getMe = async (req, res) => {
     res.status(200).json({
         status: 'success',
         data: {
-            User: me,
+            user: me,
         }
     })
 }
