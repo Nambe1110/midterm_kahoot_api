@@ -3,6 +3,7 @@ const router = Router();
 import * as usersCtrl from "../controllers/user.controller.js";
 import { authJwt, upload } from "../middlewares/index.js";
 
+router.get('/me', [authJwt.verifyToken], usersCtrl.getMe)
 router.get('/all', [authJwt.verifyToken, authJwt.isAdmin], usersCtrl.getUsers);
 router.get('/:userId', authJwt.verifyToken, usersCtrl.getUserById);
 router.get('/verify/:userId/:token', usersCtrl.activateAccountByToken);
