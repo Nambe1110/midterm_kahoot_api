@@ -340,7 +340,7 @@ export const toMember = async (req, res) => {
 
 export const addMemberViaLink = async (req, res) => {
     try {
-        const group = await Group.findById(req.body.groupId);
+        const group = await Group.findById(req.params.groupId);
         if(!group) return res.status(404).json({ message: "Group doesn't exist"});
         if(req.userId == group.owner_id) {
             return res.status(404).json({ message: "Failed to invite. User is owner of this group"});
