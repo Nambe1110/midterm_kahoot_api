@@ -14,6 +14,13 @@ export const createGroup = async (req, res) => {
     if(alredyGroupExist) return res.status(400).json({ message: "Group already exists"});
 
     const groupSaved = await newGroup.save();
+
+    const user = await User.findById(req.userId);
+    const roleOfUser = user.roles;
+    roleOfUser.owner.push(groupSaved._id);
+
+    const updatedUser = await User.findByIdAndUpdate(req.userId,{roles: roleOfUser}, { new: true })
+
     res.status(200).json({
         status: 'success',
         data: { 
@@ -21,10 +28,6 @@ export const createGroup = async (req, res) => {
         }
     })
 
-    const user = await User.findById(req.userId);
-    const roleOfUser = user.roles;
-    roleOfUser.owner.push(groupSaved._id);
-    const updatedUser = await User.findByIdAndUpdate(req.userId,{roles: roleOfUser}, { new: true })
 }
 
 export const getGroups = async (req, res) => {
