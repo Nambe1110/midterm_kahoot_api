@@ -123,9 +123,9 @@ export const googleSignIn = async (req, res) => {
         res.status(200).json({
             status: 'success',
             data: { 
-                id:userFound._id,
-                email:userFound.email,
-                password:userFound.password,
+                id: savedUser._id,
+                email: savedUser.email,
+                password: savedUser.password,
                 accessToken:token
             }
         })
