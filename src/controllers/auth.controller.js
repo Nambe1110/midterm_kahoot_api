@@ -5,6 +5,7 @@ import crypto from 'crypto';
 import config from '../config.js';
 import Role from '../models/Role.js';
 import { Email } from '../modules/Email.js';
+import { getDecodedOAuthJwtGoogle } from '../utils/OAuth.js';
 
 export const signUp = async (req, res) => {
     const { email, password, firstname, lastname, yearOfBirth, gender, address } = req.body;
@@ -83,6 +84,54 @@ export const signIn = async (req, res) => {
             accessToken:token
         }
     })
+};
+
+export const googleSignIn = async (req, res) => {
+    const { credential } = req.body;
+    try {
+        const realUserData = await getDecodedOAuthJwtGoogle(credential) // credentials === JWT token
+        console.log(realUserData);
+        const newUser = new User({
+            email: realUserData.payload.email,
+            firstname: realUserData.payload.given_name,
+            lastname: realUserData.payload.family_name,
+            avatar: realUserData.payload.picture,
+            isActivated: true
+        })
+        let savedUser;
+
+        const userFound = await User.findOne({email: realUserData.payload.email}).populate("systemRole");
+        if(!userFound) {
+            const systemRole = await Role.findOne({name: 'user'})
+            newUser.systemRole = systemRole._id;
+
+            savedUser = await newUser.save();
+            console.log(savedUser);
+        } else {
+            savedUser = userFound;
+        }
+
+        const token = jwt.sign({id: savedUser._id}, config.SECRET, { 
+                // expiresIn: 86400 
+            }
+        );
+
+        if (!savedUser.isActivated) {
+            await User.findByIdAndUpdate(savedUser._id, {isActivated: true}, { new: true } );
+        }
+        
+        res.status(200).json({
+            status: 'success',
+            data: { 
+                id:userFound._id,
+                email:userFound.email,
+                password:userFound.password,
+                accessToken:token
+            }
+        })
+    } catch (e) {
+        console.log(e);
+    }
 };
 
 
