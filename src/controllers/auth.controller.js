@@ -96,6 +96,8 @@ export const googleSignIn = async (req, res) => {
             firstname: realUserData.payload.given_name,
             lastname: realUserData.payload.family_name,
             avatar: realUserData.payload.picture,
+            yearOfBirth: null,
+            address: null,
             isActivated: true
         })
         let savedUser;
