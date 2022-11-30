@@ -48,7 +48,12 @@ export const updateUserInfoById = async (req, res) => {
     const user = await User.findById(req.body.userId);
     if(!user) return res.status(404).json({ message: "User doesn't exist"});
 
-    const updatedUser = await User.findByIdAndUpdate(req.body.userId, req.body, { new: true })
+    const updatedUser = await User.findByIdAndUpdate(req.body.userId, {
+        firstname: req.body.firstname,
+        lastname: req.body.lastname,
+        yearOfBirth: req.body.yearOfBirth,
+        address: req.body.address
+    }, { new: true })
     res.status(200).json({
         status: 'success',
         data: { 
