@@ -387,14 +387,11 @@ export const sendInviteLink = async (req, res) => {
     if (user.length === 0) {
         return res.status(401).json({message: "User not found with given email!"})
     }
-    try {
-        Email.send({
+
+    await Email.send({
             html: 'Click this link to join group: https://group-master.vercel.app/group/join/' + req.body.groupId,
             receiver: req.body.email,
             subject: 'DLN-Elearning invitation'
         })
-        res.status(200).json({ message: 'Send invitation successfully' })
-    } catch (error) {
-        console.log(error);
-    }
+    res.status(200).json({ message: 'Send invitation successfully' })
 }
