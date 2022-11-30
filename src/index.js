@@ -26,10 +26,6 @@ app.use(express.json());
 app.use(passport.initialize());
 app.use(passport.session());
 
-app.get('/api/user/current_user', (req, res) => {
-    res.send(req.user);
-});
-
 import route from './routes/index.js'
 route(app);
 

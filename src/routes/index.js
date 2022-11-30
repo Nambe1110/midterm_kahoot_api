@@ -2,6 +2,7 @@
 import authRoutes from './auth.routes.js';
 import userRoutes from './user.routes.js';
 import groupRoutes from './group.routes.js';
+import passport from 'passport';
 
 const route = (app) => {
     app.get('/', (req, res) => {
@@ -12,6 +13,18 @@ const route = (app) => {
             }
         });
     });
+
+    // Google sign in
+    app.get('/auth/google', passport.authenticate('google', { scope: ['profile','email'] }))
+    app.get('/auth/google/callback',
+        passport.authenticate('google', { failureRedirect: '/error' }),
+        (req, res) => {
+            res.redirect('/api/user/current_user');
+        }
+      )
+    app.get('/api/user/current_user', (req, res) => {
+       res.send(req.user);
+    })
 
     app.use('/api/auth', authRoutes);
     app.use('/api/group', groupRoutes);
