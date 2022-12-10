@@ -103,12 +103,34 @@ export const changeAllSlides = async (req, res) => {
     
     const existingSlides = presentation.slides;
 
+    let newSlides;
     
-    // const presentationSaved = await newPresentation.save();
-    // res.status(200).json({
-    //     status: 'success',
-    //     data: { 
-    //         presentationSaved
-    //     }
-    // })
+    const updatedPresentation = await Presentation.findByIdAndUpdate(req.body.presentationId, {
+        slides: newSlides
+    }, { new: true })
+    res.status(200).json({
+        status: 'success',
+        data: { 
+            presentationUpdated
+        }
+    })
+}
+
+export const deleteAllSlides = async (req, res) => {
+    const { slides, presentationId } = req.body; 
+    const presentation = await Presentation.findById(presentationId);
+    if(!presentation) return res.status(400).json({ message: "Presentation does not exist"});
+    
+    const existingSlides = presentation.slides;
+
+    
+    const updatedPresentation = await Presentation.findByIdAndUpdate(req.body.presentationId, {
+        slides: null
+    }, { new: true })
+    res.status(200).json({
+        status: 'success',
+        data: { 
+            updatedPresentation
+        }
+    })
 }
