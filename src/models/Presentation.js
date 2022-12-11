@@ -14,7 +14,8 @@ const presentationSchema = new Schema({
     name: { type: String, required: true, unique:true, trim: true},
     currentSlide: slideSchema,
     slides: [slideSchema],
-    isPrivate: { type:Boolean, required: true, default: false}
+    isPrivate: { type:Boolean, required: true, default: false},
+    createdby: {type: Schema.Types.ObjectId, ref:'User'}
 },{
     timestamps: true,
     versionKey: false,

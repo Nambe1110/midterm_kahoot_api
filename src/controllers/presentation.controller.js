@@ -172,9 +172,18 @@ export const answerSlideQuestion = async (req, res) => {
     const presentation = await Presentation.findById(presentationId);
     if(!presentation) return res.status(400).json({ message: "Presentation does not exist"});
 
+    if(req.userId) {
+        let answeredUser = presentation.currentSlide.answeredUser.filter(userId => userId.equals(req.userId));
+        if(answerId[0]) return res.status(400).json({ message: "You have answered this question"});
+    }
+
     let foundAns = presentation.currentSlide.answers.filter(ans => ans._id.equals(answerId));
     if(!foundAns[0]) return res.status(400).json({ message: "The answer ID does not exist in the current presentation"});
     
+    // add user id to the answered User if user logined
+    if(req.userId) {
+        presentation.currentSlide.answeredUser.push(req.userId);
+    }
     // Increase count in the currentSlide property and in the Presentation.slides[index]
     presentation.currentSlide.answers.map(ans =>{ 
         if (ans._id.equals(answerId)) {
@@ -184,6 +193,7 @@ export const answerSlideQuestion = async (req, res) => {
     presentation.slides.map(slide => {
         if (slide._id.equals(presentation.currentSlide._id)) {
             slide.answers = presentation.currentSlide.answers;
+            slide.answeredUser= presentation.currentSlide.answeredUser;
         }
     })
 
