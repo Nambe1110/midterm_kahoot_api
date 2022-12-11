@@ -35,7 +35,7 @@ export const getPresentationById = async (req, res) => {
 }
 
 export const createPresentation = async (req, res) => {
-    const alredyPresentationExist = await Presentation.findOne({ name: req.body.name});
+    const alredyPresentationExist = await Presentation.findOne({ name: req.body.name, createdBy: req.userId});
     if(alredyPresentationExist) return res.status(400).json({ message: "Presentation already exists"});
 
     const newPresentation = new Presentation({name: req.body.name});
@@ -171,7 +171,7 @@ export const answerSlideQuestion = async (req, res) => {
     const { presentationId, answerId } = req.body; 
     const presentation = await Presentation.findById(presentationId);
     if(!presentation) return res.status(400).json({ message: "Presentation does not exist"});
-
+    console.log(req.userId)
     if(req.userId) {
         let answeredUser = presentation.currentSlide.answeredUser.filter(userId => userId.equals(req.userId));
         if(answerId[0]) return res.status(400).json({ message: "You have answered this question"});

@@ -23,6 +23,21 @@ export const verifyToken = async (req, res, next) => {
     }
 }
 
+export const verifyIfHaveToken = async (req, res, next) => { 
+    try {
+        if(req.headers["x-access-token"]) {
+            const token = req.headers["x-access-token"];
+            const decoded = jwt.verify(token, config.SECRET);
+            req.userId = decoded.id;
+        }
+        
+        next();
+
+    }catch(error){  
+        return res.status(401).json({message: 'unauthorized'})    
+    }
+}
+
 export const isAdmin = async (req, res, next)=> {
     const user = await User.findById(req.userId);
     console.log(req.userId); 
