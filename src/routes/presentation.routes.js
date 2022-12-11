@@ -9,7 +9,9 @@ router.patch('/toPrivate', PresentationsCtrl.toPrivate);
 router.patch('/toPublic', PresentationsCtrl.toPublic);
 router.patch('/changeName', PresentationsCtrl.updatePresentationNameById);
 router.patch('/changeAllSlides', PresentationsCtrl.changeAllSlides);
-router.patch('/deleteAllSlides', PresentationsCtrl.updatePresentationNameById);
+router.patch('/currentSlide', PresentationsCtrl.changeCurrentSlide);
+router.patch('/deleteAllSlides', PresentationsCtrl.deleteAllSlides);
+router.patch('/vote', PresentationsCtrl.answerSlideQuestion);
 router.delete('/delete', PresentationsCtrl.deletePresentationById);
 
 export default router;

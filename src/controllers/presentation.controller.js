@@ -1,7 +1,13 @@
 import Presentation from "../models/Presentation.js";
 
 export const getPresentations = async (req, res) => {
-    const presentations = await Presentation.find();
+    const presentations = await Presentation.find().populate({ 
+        path: 'slides',
+        populate: {
+            path: 'answeredUser',
+            model: 'User'
+        } 
+    });
     res.status(200).json({
         status: 'success',
         data: { 
@@ -11,7 +17,13 @@ export const getPresentations = async (req, res) => {
 }
 
 export const getPresentationById = async (req, res) => {
-    const presentation = await Presentation.findById(req.params.presentationId);
+    const presentation = await Presentation.findById(req.params.presentationId).populate({ 
+        path: 'slides',
+        populate: {
+            path: 'answeredUser',
+            model: 'User'
+        } 
+    });
     if(!presentation) return res.status(404).json({ message: "Presentation doesn't exist"});
 
     res.status(200).json({
@@ -101,32 +113,90 @@ export const changeAllSlides = async (req, res) => {
     const presentation = await Presentation.findById(presentationId);
     if(!presentation) return res.status(400).json({ message: "Presentation does not exist"});
     
-    const existingSlides = presentation.slides;
-
-    let newSlides;
-    
-    const updatedPresentation = await Presentation.findByIdAndUpdate(req.body.presentationId, {
-        slides: newSlides
+    const updatedPresentation = await Presentation.findByIdAndUpdate(presentationId, {
+        slides: slides
     }, { new: true })
     res.status(200).json({
         status: 'success',
         data: { 
-            presentationUpdated
+            updatedPresentation
+        }
+    })
+}
+
+export const changeCurrentSlide = async (req, res) => {
+    const { currSlideId, presentationId } = req.body; 
+    const presentation = await Presentation.findById(presentationId);
+    if(!presentation) return res.status(400).json({ message: "Presentation does not exist"});
+  
+    let foundSlide = presentation.slides.filter(slide => slide._id.equals(currSlideId));
+    console.log(foundSlide[0]);
+    if(!foundSlide) return res.status(400).json({ message: "The slide ID does not exist"});
+    
+    const updatedPresentation = await Presentation.findByIdAndUpdate(presentationId, {
+        currentSlide: foundSlide[0]
+    }, { new: true }).populate({ 
+        path: 'slides',
+        populate: {
+            path: 'answeredUser',
+            model: 'User'
+        } 
+    });
+    res.status(200).json({
+        status: 'success',
+        data: { 
+            updatedPresentation
         }
     })
 }
 
 export const deleteAllSlides = async (req, res) => {
-    const { slides, presentationId } = req.body; 
+    const {presentationId } = req.body; 
+    console.log(presentationId);
     const presentation = await Presentation.findById(presentationId);
     if(!presentation) return res.status(400).json({ message: "Presentation does not exist"});
     
-    const existingSlides = presentation.slides;
-
-    
-    const updatedPresentation = await Presentation.findByIdAndUpdate(req.body.presentationId, {
+    const updatedPresentation = await Presentation.findByIdAndUpdate(presentationId, {
         slides: null
     }, { new: true })
+    res.status(200).json({
+        status: 'success',
+        data: { 
+            updatedPresentation
+        }
+    })
+}
+
+export const answerSlideQuestion = async (req, res) => {
+    const { presentationId, answerId } = req.body; 
+    const presentation = await Presentation.findById(presentationId);
+    if(!presentation) return res.status(400).json({ message: "Presentation does not exist"});
+
+    let foundAns = presentation.currentSlide.answers.filter(ans => ans._id.equals(answerId));
+    if(!foundAns[0]) return res.status(400).json({ message: "The answer ID does not exist in the current presentation"});
+    
+    // Increase count in the currentSlide property and in the Presentation.slides[index]
+    presentation.currentSlide.answers.map(ans =>{ 
+        if (ans._id.equals(answerId)) {
+            ans.count += 1;
+        }
+    });
+    presentation.slides.map(slide => {
+        if (slide._id.equals(presentation.currentSlide._id)) {
+            slide.answers = presentation.currentSlide.answers;
+        }
+    })
+
+    const updatedPresentation = await Presentation.findByIdAndUpdate(presentationId, {
+        slides: presentation.slides,
+        currentSlide: presentation.currentSlide
+    }, { new: true }).populate({ 
+        path: 'slides',
+        populate: {
+            path: 'answeredUser',
+            model: 'User'
+        } 
+    });
     res.status(200).json({
         status: 'success',
         data: { 
