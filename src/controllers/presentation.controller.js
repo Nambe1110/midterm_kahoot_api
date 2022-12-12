@@ -195,7 +195,7 @@ export const answerSlideQuestion = async (req, res) => {
     
     if(req.userId) {
         let answeredUser = presentation.currentSlide.answeredUser.filter(userId => userId.equals(req.userId));
-        if(answerId[0]) return res.status(400).json({ message: "You have answered this question"});
+        if(answeredUser[0]) return res.status(400).json({ message: "You have answered this question"});
     }
 
     let foundAns = presentation.currentSlide.answers.filter(ans => ans._id.equals(answerId));
