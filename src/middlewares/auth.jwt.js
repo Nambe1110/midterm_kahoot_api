@@ -3,6 +3,7 @@ import User from '../models/User.js';
 import jwt from 'jsonwebtoken';
 import Role from '../models/Role.js';
 import Group from '../models/Group.js';
+import Presentation from "../models/Presentation.js";
 
 export const verifyToken = async (req, res, next) => { 
     try {
@@ -98,3 +99,15 @@ export const isMemberOfGroup= async (req, res, next)=> {
     return res.status(403).json({message: "requested memeber role of this group"})
 }
 
+export const isOwnerOfPresentation = async (req, res, next)=> {
+    const presentation = await Presentation.findById(req.body.presentationId);
+    if(!presentation) return res.status(404).json({ message: "Presentation doesn't exist"});
+
+    console.log(presentation.createdBy)
+    console.log(req.userId)
+    if (presentation.createdBy == req.userId){
+        next();
+        return;
+    }
+    return res.status(403).json({message: "requested owner of this presentation"})
+}

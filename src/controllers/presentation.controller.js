@@ -62,8 +62,7 @@ export const createPresentation = async (req, res) => {
 export const updatePresentationNameById = async (req, res) => {
     const {presentationId, newName} = req.body;
 
-    const presentation = await Presentation.findById(presentationId);
-    if(!presentation) return res.status(404).json({ message: "Presentation doesn't exist"});
+    // The check whether the presentation exist or not is done in the Middle ware function
 
     const alreadyPresentationExist = await Presentation.findOne({ name: newName});
     if(alreadyPresentationExist) return res.status(400).json({ message: "This name already exists"});
@@ -124,20 +123,29 @@ export const changeAllSlides = async (req, res) => {
     const presentation = await Presentation.findById(presentationId);
     if(!presentation) return res.status(400).json({ message: "Presentation does not exist"});
     
-    // Handle if the current presented slide is deleted
-    let foundSlide = presentation.slides.filter(slide => slide._id.equals(presentation.currentSlide._id));
+    let updatedPresentation;
+
+    // Handle if the current presented slide is deleted new slides array
+    // First, update the slides array to db to make sure that all the slides have the _id
+    // -> The, Point the first slide of the new slides array(already has _id) to be current presented
+    let foundSlide = slides.filter(slide => slide._id && slide._id == presentation.currentSlide._id);
     if(!foundSlide[0]) {
-        presentation.currentSlide = slides[0];
-        presentation.slides = slides;
-    } else {
-        presentation.currentSlide = foundSlide[0];
-        presentation.slides = slides;
+        const updated = await Presentation.findByIdAndUpdate(presentationId, {
+            slides: slides
+        }, { new: true })
+        updatedPresentation = await Presentation.findByIdAndUpdate(presentationId, {
+            currentSlide: updated.slides[0]
+        }, { new: true })
+    } 
+    // The current presented slide is still exist (may be modified or still the same as in the database)
+    // -> Update the currentSlide together the slides array
+    else {
+        updatedPresentation = await Presentation.findByIdAndUpdate(presentationId, {
+            slides: slides,
+            currentSlide: foundSlide[0]
+        }, { new: true })
     }
 
-    const updatedPresentation = await Presentation.findByIdAndUpdate(presentationId, {
-        slides: presentation.slides,
-        currentSlide: presentation.currentSlide
-    }, { new: true })
     res.status(200).json({
         status: 'success',
         data: { 
@@ -173,12 +181,12 @@ export const changeCurrentSlide = async (req, res) => {
 
 export const deleteAllSlides = async (req, res) => {
     const {presentationId } = req.body; 
-    console.log(presentationId);
-    const presentation = await Presentation.findById(presentationId);
-    if(!presentation) return res.status(400).json({ message: "Presentation does not exist"});
+   
+    // The check whether the presentation exist or not is done in the Middle ware function
     
     const updatedPresentation = await Presentation.findByIdAndUpdate(presentationId, {
-        slides: null
+        slides: null,
+        currentSlide: null
     }, { new: true })
     res.status(200).json({
         status: 'success',
@@ -188,6 +196,7 @@ export const deleteAllSlides = async (req, res) => {
     })
 }
 
+// Answer public presentation: only handle public presentation in stage 2 of the project
 export const answerSlideQuestion = async (req, res) => {
     const { presentationId, answerId } = req.body; 
     const presentation = await Presentation.findById(presentationId);
