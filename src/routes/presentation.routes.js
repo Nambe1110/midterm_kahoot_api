@@ -4,7 +4,7 @@ import * as PresentationsCtrl from "../controllers/presentation.controller.js";
 import { authJwt } from "../middlewares/index.js";
 
 router.get('/all', PresentationsCtrl.getPresentations);
-router.get('/:presentationId', [authJwt.verifyToken, authJwt.isOwnerOfPresentation], PresentationsCtrl.getPresentationById);
+router.get('/:presentationId', PresentationsCtrl.getPresentationById);
 router.post('/create', [authJwt.verifyToken], PresentationsCtrl.createPresentation);
 router.patch('/toPrivate', [authJwt.verifyToken, authJwt.isOwnerOfPresentation], PresentationsCtrl.toPrivate);
 router.patch('/toPublic', [authJwt.verifyToken, authJwt.isOwnerOfPresentation], PresentationsCtrl.toPublic);
