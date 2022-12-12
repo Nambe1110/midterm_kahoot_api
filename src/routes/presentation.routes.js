@@ -4,7 +4,7 @@ import * as PresentationsCtrl from "../controllers/presentation.controller.js";
 import { authJwt } from "../middlewares/index.js";
 
 router.get('/all', PresentationsCtrl.getPresentations);
-router.get('/:presentationId', PresentationsCtrl.getPresentationById);
+router.get('/:presentationId', [authJwt.verifyToken, authJwt.isOwnerOfPresentation], PresentationsCtrl.getPresentationById);
 router.post('/create', [authJwt.verifyToken], PresentationsCtrl.createPresentation);
 router.patch('/toPrivate', [authJwt.verifyToken, authJwt.isOwnerOfPresentation], PresentationsCtrl.toPrivate);
 router.patch('/toPublic', [authJwt.verifyToken, authJwt.isOwnerOfPresentation], PresentationsCtrl.toPublic);
@@ -15,4 +15,4 @@ router.patch('/deleteAllSlides', [authJwt.verifyToken, authJwt.isOwnerOfPresenta
 router.patch('/vote', [authJwt.verifyIfHaveToken], PresentationsCtrl.answerSlideQuestion);
 router.delete('/delete', [authJwt.verifyToken, authJwt.isOwnerOfPresentation], PresentationsCtrl.deletePresentationById);
 
-export default router;
+export default router

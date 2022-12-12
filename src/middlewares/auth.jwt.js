@@ -100,7 +100,13 @@ export const isMemberOfGroup= async (req, res, next)=> {
 }
 
 export const isOwnerOfPresentation = async (req, res, next)=> {
-    const presentation = await Presentation.findById(req.body.presentationId);
+    let presentationId;
+    if(req.body.presentationId) {
+        presentationId = req.body.presentationId;
+    } else {
+        presentationId = req.params.presentationId;
+    }
+    const presentation = await Presentation.findById(presentationId);
     if(!presentation) return res.status(404).json({ message: "Presentation doesn't exist"});
 
     console.log(presentation.createdBy)
