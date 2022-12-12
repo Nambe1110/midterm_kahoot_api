@@ -35,10 +35,21 @@ export const getPresentationById = async (req, res) => {
 }
 
 export const createPresentation = async (req, res) => {
-    const alredyPresentationExist = await Presentation.findOne({ name: req.body.name, createdBy: req.userId});
-    if(alredyPresentationExist) return res.status(400).json({ message: "Presentation already exists"});
+    const alreadyPresentationExist = await Presentation.findOne({ name: req.body.name});
+    if(alreadyPresentationExist) return res.status(400).json({ message: "Presentation already exists"});
 
-    const newPresentation = new Presentation({name: req.body.name});
+    // Create new presentation with a default slide and set the default to be the current presented slide
+    const newPresentation = new Presentation({name: req.body.name, createdBy: req.userId});
+    newPresentation.slides.push({
+        "question": "Sample Question",
+        "answers": [
+            {
+                "answer": "Sample Answer",
+                "count": 0
+            }
+        ]
+    },);
+    newPresentation.currentSlide = newPresentation.slides[0];
     const presentationSaved = await newPresentation.save();
     res.status(200).json({
         status: 'success',
@@ -54,8 +65,8 @@ export const updatePresentationNameById = async (req, res) => {
     const presentation = await Presentation.findById(presentationId);
     if(!presentation) return res.status(404).json({ message: "Presentation doesn't exist"});
 
-    const alredyPresentationExist = await Presentation.findOne({ name: newName});
-    if(alredyPresentationExist) return res.status(400).json({ message: "This name already exists"});
+    const alreadyPresentationExist = await Presentation.findOne({ name: newName});
+    if(alreadyPresentationExist) return res.status(400).json({ message: "This name already exists"});
     
     const updatedPresentation = await Presentation.findByIdAndUpdate(presentationId, {
         name: newName
