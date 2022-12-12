@@ -1,12 +1,12 @@
 import {Schema, model} from 'mongoose';
 
 const slideSchema = new Schema({
-    question: { type: String, trim: true, maxlength: 1000},
+    question: { type: String, trim: true, default:"", maxlength: 1000},
     answers: [{
-        answer: { type: String, trim: true},
+        answer: { type: String, trim: true, default:""},
         count: { type: Number, default: 0}
     }],
-    correctAnswer: { type: String, trim: true},
+    correctAnswer: { type: String, trim: true, default:""},
     answeredUser: [{type: Schema.Types.ObjectId, ref:'User'}]
 }); 
 

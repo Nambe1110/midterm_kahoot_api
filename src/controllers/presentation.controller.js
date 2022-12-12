@@ -124,8 +124,19 @@ export const changeAllSlides = async (req, res) => {
     const presentation = await Presentation.findById(presentationId);
     if(!presentation) return res.status(400).json({ message: "Presentation does not exist"});
     
+    // Handle if the current presented slide is deleted
+    let foundSlide = presentation.slides.filter(slide => slide._id.equals(presentation.currentSlide._id));
+    if(!foundSlide[0]) {
+        presentation.currentSlide = slides[0];
+        presentation.slides = slides;
+    } else {
+        presentation.currentSlide = foundSlide[0];
+        presentation.slides = slides;
+    }
+
     const updatedPresentation = await Presentation.findByIdAndUpdate(presentationId, {
-        slides: slides
+        slides: presentation.slides,
+        currentSlide: presentation.currentSlide
     }, { new: true })
     res.status(200).json({
         status: 'success',
@@ -141,8 +152,7 @@ export const changeCurrentSlide = async (req, res) => {
     if(!presentation) return res.status(400).json({ message: "Presentation does not exist"});
   
     let foundSlide = presentation.slides.filter(slide => slide._id.equals(currSlideId));
-    console.log(foundSlide[0]);
-    if(!foundSlide) return res.status(400).json({ message: "The slide ID does not exist"});
+    if(!foundSlide[0]) return res.status(400).json({ message: "The slide ID does not exist"});
     
     const updatedPresentation = await Presentation.findByIdAndUpdate(presentationId, {
         currentSlide: foundSlide[0]
@@ -182,7 +192,7 @@ export const answerSlideQuestion = async (req, res) => {
     const { presentationId, answerId } = req.body; 
     const presentation = await Presentation.findById(presentationId);
     if(!presentation) return res.status(400).json({ message: "Presentation does not exist"});
-    console.log(req.userId)
+    
     if(req.userId) {
         let answeredUser = presentation.currentSlide.answeredUser.filter(userId => userId.equals(req.userId));
         if(answerId[0]) return res.status(400).json({ message: "You have answered this question"});
