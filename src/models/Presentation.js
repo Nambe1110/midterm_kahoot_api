@@ -7,7 +7,8 @@ const slideSchema = new Schema({
         count: { type: Number, default: 0}
     }],
     correctAnswer: { type: String, trim: true, default:""},
-    answeredUser: [{type: Schema.Types.ObjectId, ref:'User', default:[]}]
+    answeredUser: [{type: Schema.Types.ObjectId, ref:'User', default:[]}],
+    chartType: { type: String, trim: true, default:"bar"}
 }); 
 
 const presentationSchema = new Schema({

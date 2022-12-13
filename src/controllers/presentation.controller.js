@@ -16,6 +16,26 @@ export const getPresentations = async (req, res) => {
     })
 }
 
+export const getAllPresentations = async (req, res) => {
+    const presentations = await Presentation.find().populate({ 
+        path: 'slides',
+        populate: {
+            path: 'answeredUser',
+            model: 'User'
+        } 
+    });
+    console.log(req.userId)
+    const createdByUserPresentations = presentations.filter(p => p.createdBy == req.userId);
+    if(!createdByUserPresentations[0]) return res.json({message: "There is no presentation created by this user"})
+    
+    res.status(200).json({
+        status: 'success',
+        data: { 
+            createdByUserPresentations
+        }
+    })
+}
+
 export const getPresentationById = async (req, res) => {
     const presentation = await Presentation.findById(req.params.presentationId).populate({ 
         path: 'slides',
@@ -47,7 +67,8 @@ export const createPresentation = async (req, res) => {
                 "answer": "Sample Answer",
                 "count": 0
             }
-        ]
+        ],
+        "chartType": "bar"
     },);
     newPresentation.currentSlide = newPresentation.slides[0];
     const presentationSaved = await newPresentation.save();

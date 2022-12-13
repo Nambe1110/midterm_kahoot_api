@@ -3,7 +3,8 @@ const router = Router();
 import * as PresentationsCtrl from "../controllers/presentation.controller.js";
 import { authJwt } from "../middlewares/index.js";
 
-router.get('/all', PresentationsCtrl.getPresentations);
+router.get('/total', PresentationsCtrl.getPresentations); // get all presentations in db
+router.get('/all', [authJwt.verifyToken], PresentationsCtrl.getAllPresentations); // get all presentation created by a user
 router.get('/:presentationId', PresentationsCtrl.getPresentationById);
 router.post('/create', [authJwt.verifyToken], PresentationsCtrl.createPresentation);
 router.patch('/toPrivate', [authJwt.verifyToken, authJwt.isOwnerOfPresentation], PresentationsCtrl.toPrivate);
