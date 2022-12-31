@@ -136,4 +136,35 @@ export const googleSignIn = async (req, res) => {
     }
 };
 
+export const requestResetPassword = async (req, res) => {
+    
+    const userFound = await User.findOne({email: req.body.email}).populate("systemRole");
+    if(!userFound) return res.status(404).json({message: "user not found"})
+    if (!userFound.isActivated) return res.status(401).json({message: "user is not activated"})
+    
+    let resetPassword = await new Token({
+        userId: userFound._id,
+        token: crypto.randomBytes(32).toString("hex"),
+        tokenType: "resetPassword"
+    }).save();
+  
+    const message = `Hi ${userFound.firstname}, <br>
+                    Please follow this link to continue the process of reseting your account password: <a href="${process.env.FE_HOST_URL}/account/resetpassword/${resetPassword.userId}/${resetPassword.token}">Reset password link </a>  <br>
+                    <br>If you don't request to reset the password, please disregard this email. <br>
+                    Sorry for your time. <br>
+                    <br>Best regards, <br>
+                    Dln Learning Application Team <br>
+    `;
+
+    await Email.send({
+        html: message,
+        receiver: userFound.email,
+        subject: 'Dln Elearning Application - Reset account password',
+    })
+
+    res.status(200).json({
+        status: 'success',
+        message: 'An Email sent to your registered email account. Please follow the provided link to continue the process of reseting your account password. <br>'
+    })
+};
 

@@ -11,6 +11,14 @@ const tokenSchema = new Schema({
         type: String,
         required: true,
     },
+    tokenType: {
+        type: String,
+        default: "activateAccount"
+    },
+    createdAt: {
+        type: Date,
+        default: new Date().toISOString()
+    }
 });
 
 const Token = mongoose.model("Token", tokenSchema);

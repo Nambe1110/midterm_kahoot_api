@@ -89,8 +89,6 @@ export const deleteUserById = async (req, res) => {
 export const activateAccountByToken = async (req, res) => {
     try {
         const user = await User.findById(req.params.userId);
-        console.log(req.params.userId);
-        console.log( req.params.token)
         if (!user) return res.status(400).send("Invalid user");
     
         const token = await Token.findOne({
@@ -103,6 +101,37 @@ export const activateAccountByToken = async (req, res) => {
         await Token.findByIdAndDelete(token._id);
     
         res.send("Email verified sucessfully");
+    } catch (error) {
+        res.status(400).send("An error occured");
+        console.log(error);
+    }
+}
+
+export const resetPassword = async (req, res) => {
+    try {
+        const user = await User.findById(req.body.userId);
+        if (!user) return res.status(400).send("Invalid user");
+    
+        const token = await Token.findOne({
+            userId: user._id,
+            token: req.body.token,
+            tokenType: "resetPassword"
+        });
+        if (!token) return res.status(400).send("Invalid token");
+
+        // Token will expired in 60 minutes after created
+        const onehour= 1000 * 60 * 60;
+        if (Date.now() - token.createdAt > onehour) {
+            await Token.findByIdAndDelete(token._id);
+            return res.status(400).send("Token expired");
+        }
+    
+        await User.findByIdAndUpdate(user._id, {
+            password: await User.encryptPassword(req.body.password),
+        }, { new: true } );
+        await Token.findByIdAndDelete(token._id);
+    
+        res.send("Reset password successfully");
     } catch (error) {
         res.status(400).send("An error occured");
         console.log(error);
