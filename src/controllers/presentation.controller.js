@@ -132,6 +132,7 @@ export const addCollaborators = async (req, res) => {
 
         const presentation = await Presentation.findById(presentationId);
         if(!presentation) return res.status(404).json({ message: "Presentation doesn't exist"});
+        if(presentation.isPrivate) return res.status(404).json({ message: "Can not add collaborator to private presentation"});
         if (presentation.createdBy == userId) return res.status(404).json({ message: "Can not add the user who created the presentaion to be a collaborator"});
         if (presentation.collaborators.includes(userId)) return res.status(404).json({ message: "This user is already a collaborator"});
         const user = await User.findById(userId);
@@ -170,6 +171,7 @@ export const removeCollaborators = async (req, res) => {
 
     const presentation = await Presentation.findById(presentationId);
     if(!presentation) return res.status(404).json({ message: "Presentation doesn't exist"});
+    if(presentation.isPrivate) return res.status(404).json({ message: "Can not remove collaborator of private presentation"});
     if (!presentation.collaborators.includes(userId)) return res.status(404).json({ message: "This user is not a collaborator of this presentation"});
     const user = await User.findById(userId);
     if(!user) return res.status(404).json({ message: "User not found"});

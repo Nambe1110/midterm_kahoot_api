@@ -17,7 +17,8 @@ const presentationSchema = new Schema({
     slides: [slideSchema],
     isPrivate: { type:Boolean, required: true, default: false},
     collaborators: [{type: Schema.Types.ObjectId, ref:'User', default:[]}],
-    createdBy: {type: Schema.Types.ObjectId, ref:'User'}
+    createdBy: {type: Schema.Types.ObjectId, ref:'User'},
+    groupId: {type: Schema.Types.ObjectId, ref:'Group'}
 },{
     timestamps: true,
     versionKey: false,
