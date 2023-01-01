@@ -11,7 +11,7 @@ export const getAllNotifications = async (req, res) => {
 }
 
 export const getNotifications = async (req, res) => {
-    const userId = req.params.userId;
+    const userId = req.userId;
     const limitSize = req.query.limitSize ? parseInt(req.query.limitSize) : 0;
     const index = req.query.index ? parseInt(req.query.index) : 0;
 
