@@ -11,10 +11,11 @@ export const getAllNotifications = async (req, res) => {
 }
 
 export const getNotifications = async (req, res) => {
+    const userId = req.params.userId;
     const limitSize = req.query.limitSize ? parseInt(req.query.limitSize) : 0;
     const index = req.query.index ? parseInt(req.query.index) : 0;
 
-    const notifications = await Notification.find({}).limit(limitSize).skip(index);;
+    const notifications = await Notification.find({userId: userId}).limit(limitSize).skip(index);;
     res.status(200).json({
         status: 'success',
         data: { 

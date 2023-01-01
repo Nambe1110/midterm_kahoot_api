@@ -4,6 +4,8 @@ import userRoutes from './user.routes.js';
 import groupRoutes from './group.routes.js';
 import presentationRoutes from './presentation.routes.js';
 import notificationRoutes from './notification.routes.js';
+import questionRoutes from './question.routes.js';
+import chatRoutes from './chat.routes.js';
 
 const route = (app) => {
     app.get('/', (req, res) => {
@@ -20,6 +22,8 @@ const route = (app) => {
     app.use('/api/user', userRoutes);
     app.use('/api/presentation', presentationRoutes);
     app.use('/api/notification', notificationRoutes);
+    app.use('/api/question', questionRoutes);
+    app.use('/api/chat', chatRoutes);
 
     app.use((err, req, res, next) => {
         res.status(err.statusCode || 500).send({
