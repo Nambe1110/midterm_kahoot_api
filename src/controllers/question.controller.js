@@ -11,10 +11,11 @@ export const getAllQuestions = async (req, res) => {
 }
 
 export const getQuestions = async (req, res) => {
+    const presentationId = req.params.presentationId;
     const limitSize = req.query.limitSize ? parseInt(req.query.limitSize) : 0;
     const index = req.query.index ? parseInt(req.query.index) : 0;
 
-    const questions = await Question.find({}).limit(limitSize).skip(index);;
+    const questions = await Question.find({presentationId: presentationId}).limit(limitSize).skip(index);;
     res.status(200).json({
         status: 'success',
         data: { 
