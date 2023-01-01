@@ -1,13 +1,20 @@
 import Presentation from "../models/Presentation.js";
+import User from '../models/User.js';
 
 export const getPresentations = async (req, res) => {
-    const presentations = await Presentation.find().populate({ 
-        path: 'slides',
-        populate: {
-            path: 'answeredUser',
+    const presentations = await Presentation.find().populate([
+        { 
+            path: 'slides',
+            populate: {
+                path: 'answeredUser',
+                model: 'User'
+            } 
+        },
+        {
+            path: "collaborators",
             model: 'User'
-        } 
-    });
+        }
+    ]);
     res.status(200).json({
         status: 'success',
         data: { 
@@ -17,14 +24,20 @@ export const getPresentations = async (req, res) => {
 }
 
 export const getAllPresentations = async (req, res) => {
-    const presentations = await Presentation.find().populate({ 
-        path: 'slides',
-        populate: {
-            path: 'answeredUser',
+    const presentations = await Presentation.find().populate([
+        { 
+            path: 'slides',
+            populate: {
+                path: 'answeredUser',
+                model: 'User'
+            } 
+        },
+        {
+            path: "collaborators",
             model: 'User'
-        } 
-    });
-    console.log(req.userId)
+        }
+    ]);
+     
     const createdByUserPresentations = presentations.filter(p => p.createdBy == req.userId);
     if(!createdByUserPresentations[0]) return res.json({message: "There is no presentation created by this user"})
     
@@ -37,13 +50,19 @@ export const getAllPresentations = async (req, res) => {
 }
 
 export const getPresentationById = async (req, res) => {
-    const presentation = await Presentation.findById(req.params.presentationId).populate({ 
-        path: 'slides',
-        populate: {
-            path: 'answeredUser',
+    const presentation = await Presentation.findById(req.params.presentationId).populate([
+        { 
+            path: 'slides',
+            populate: {
+                path: 'answeredUser',
+                model: 'User'
+            } 
+        },
+        {
+            path: "collaborators",
             model: 'User'
-        } 
-    });
+        }
+    ]);
     if(!presentation) return res.status(404).json({ message: "Presentation doesn't exist"});
 
     res.status(200).json({
@@ -104,6 +123,80 @@ export const deletePresentationById = async (req, res) => {
     if(!presentation) return res.status(404).json({ message: "Presentation doesn't exist"});
     res.status(200).json({
         status: 'success',
+    });
+}
+
+export const addCollaborators = async (req, res) => {
+    try {
+        const { presentationId, userId} = req.body;
+
+        const presentation = await Presentation.findById(presentationId);
+        if(!presentation) return res.status(404).json({ message: "Presentation doesn't exist"});
+        if (presentation.createdBy == userId) return res.status(404).json({ message: "Can not add the user who created the presentaion to be a collaborator"});
+        if (presentation.collaborators.includes(userId)) return res.status(404).json({ message: "This user is already a collaborator"});
+        const user = await User.findById(userId);
+        if(!user) return res.status(404).json({ message: "User not found"});
+
+        presentation.collaborators.push(userId);
+
+        const updatedPresentation = await Presentation.findByIdAndUpdate(presentationId, {
+            collaborators:  presentation.collaborators
+        }, { new: true }).populate([
+            { 
+                path: 'slides',
+                populate: {
+                    path: 'answeredUser',
+                    model: 'User'
+                } 
+            },
+            {
+                path: "collaborators",
+                model: 'User'
+            }
+        ]);
+        res.status(200).json({
+            status: 'success',
+            data: { 
+                updatedPresentation
+            }
+        });
+    } catch (error) {
+        console.log(error);
+    }
+}
+
+export const removeCollaborators = async (req, res) => {
+    const { presentationId, userId} = req.body;
+
+    const presentation = await Presentation.findById(presentationId);
+    if(!presentation) return res.status(404).json({ message: "Presentation doesn't exist"});
+    if (!presentation.collaborators.includes(userId)) return res.status(404).json({ message: "This user is not a collaborator of this presentation"});
+    const user = await User.findById(userId);
+    if(!user) return res.status(404).json({ message: "User not found"});
+
+    const index = presentation.collaborators.indexOf(userId);
+    presentation.collaborators.splice(index, 1);
+
+    const updatedPresentation = await Presentation.findByIdAndUpdate(presentationId, {
+        collaborators:  presentation.collaborators
+    }, { new: true }).populate([
+        { 
+            path: 'slides',
+            populate: {
+                path: 'answeredUser',
+                model: 'User'
+            } 
+        },
+        {
+            path: "collaborators",
+            model: 'User'
+        }
+    ]);
+    res.status(200).json({
+        status: 'success',
+        data: { 
+            updatedPresentation
+        }
     });
 }
 
