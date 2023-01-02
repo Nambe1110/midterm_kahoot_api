@@ -6,6 +6,7 @@ router.get('/:presentationId', QuestionsCtrl.getQuestions) // get questions of a
 router.get('/all', QuestionsCtrl.getAllQuestions); // get all questions in database
 router.post('/add', QuestionsCtrl.addQuestion);
 router.patch('/markAsAnswered', QuestionsCtrl.markAsAnswered);
+router.patch('/vote', QuestionsCtrl.vote);
 router.delete('/delete', QuestionsCtrl.deleteQuestionById);
 
 export default router;

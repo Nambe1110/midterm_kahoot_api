@@ -1,7 +1,7 @@
 import Notification from "../models/Notification.js";
 
 export const getAllNotifications = async (req, res) => {
-    const notifications = await Notification.find();
+    const notifications = await Notification.find().sort({createdAt:-1}) ;
     res.status(200).json({
         status: 'success',
         data: { 
@@ -12,11 +12,10 @@ export const getAllNotifications = async (req, res) => {
 
 export const getNotifications = async (req, res) => {
     const userId = req.userId;
-    console.log(userId)
     const limitSize = req.query.limitSize ? parseInt(req.query.limitSize) : 0;
     const index = req.query.index ? parseInt(req.query.index) : 0;
 
-    const notifications = await Notification.find({userId: userId}).limit(limitSize).skip(index);;
+    const notifications = await Notification.find({userId: userId}).limit(limitSize).skip(index).sort({createdAt:-1});
     res.status(200).json({
         status: 'success',
         data: { 

@@ -1,7 +1,7 @@
 import Chat from "../models/Chat.js";
 
 export const getAllChats = async (req, res) => {
-    const chats = await Chat.find();
+    const chats = await Chat.find().sort({createdAt:-1});
     res.status(200).json({
         status: 'success',
         data: { 
@@ -15,7 +15,7 @@ export const getChats = async (req, res) => {
     const limitSize = req.query.limitSize ? parseInt(req.query.limitSize) : 0;
     const index = req.query.index ? parseInt(req.query.index) : 0;
 
-    const chats = await Chat.find({presentationId: presentationId}).limit(limitSize).skip(index);;
+    const chats = await Chat.find({presentationId: presentationId}).limit(limitSize).skip(index).sort({createdAt:-1});
     res.status(200).json({
         status: 'success',
         data: { 
@@ -25,8 +25,8 @@ export const getChats = async (req, res) => {
 }
 
 export const addChat = async (req, res) => {
-    const {message, createdBy, presentationId} = req.body;
-    const newChat = new Chat({message, createdBy, presentationId});
+    const {message, createdUserName, presentationId} = req.body;
+    const newChat = new Chat({message, createdUserName, presentationId});
 
     const ChatSaved = await newChat.save();
     res.status(200).json({
