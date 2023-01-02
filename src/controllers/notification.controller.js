@@ -16,10 +16,12 @@ export const getNotifications = async (req, res) => {
     const index = req.query.index ? parseInt(req.query.index) : 0;
 
     const notifications = await Notification.find({userId: userId}).limit(limitSize).skip(index).sort({createdAt:-1});
+    const unreadNotifications = await Notification.find({userId: userId, isRead: false})
     res.status(200).json({
         status: 'success',
         data: { 
-            notifications
+            notifications: notifications,
+            unread_count: unreadNotifications.length
         }
     })
 }
