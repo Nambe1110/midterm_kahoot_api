@@ -25,7 +25,10 @@ export const getMe = async (req, res) => {
     res.status(200).json({
         status: 'success',
         data: {
-            user: me,
+            user: {
+                me,
+                unread_count: unreadNotifications.length
+            }
         }
     })
 }
