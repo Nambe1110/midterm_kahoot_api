@@ -1,6 +1,7 @@
 import User from "../models/User.js";
 import Token from "../models/Token.js";
 import Group from "../models/Group.js";
+import Notification from "../models/Notification.js";
 
 export const getUsers = async (req, res) => {
     const Users = await User.find();
@@ -19,10 +20,13 @@ export const getMe = async (req, res) => {
     me.roles.co_owner = groups.filter(group => me.roles.co_owner.includes(group._id));
     me.roles.member = groups.filter(group => me.roles.member.includes(group._id));
 
+    const unreadNotifications = await Notification.find({userId: me._id, isRead: false})
+
     res.status(200).json({
         status: 'success',
         data: {
             user: me,
+            unread_count: unreadNotifications.length
         }
     })
 }
