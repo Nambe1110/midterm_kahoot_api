@@ -21,14 +21,11 @@ export const getMe = async (req, res) => {
     me.roles.member = groups.filter(group => me.roles.member.includes(group._id));
 
     const unreadNotifications = await Notification.find({userId: me._id, isRead: false})
-
+    me.unread_count = unreadNotifications.length;
     res.status(200).json({
         status: 'success',
         data: {
-            user: {
-                unread_count: unreadNotifications.length,
-                ...me,
-            },
+            user: me,
         }
     })
 }
