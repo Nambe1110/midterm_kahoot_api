@@ -24,7 +24,27 @@ export const getTotalPresentations = async (req, res) => {
 }
 
 export const getAllPresentations = async (req, res) => {
-    const presentations = await Presentation.find().populate([
+    const publicPresentations = await Presentation.find({
+            isPrivate: false,
+            createdBy: req.userId
+        }).populate([
+        { 
+            path: 'slides',
+            populate: {
+                path: 'answeredUser',
+                model: 'User'
+            } 
+        },
+        {
+            path: "collaborators",
+            model: 'User'
+        }
+    ]);
+
+    const privatePresentations = await Presentation.find({
+            isPrivate: true,
+            createdBy: req.userId
+        }).populate([
         { 
             path: 'slides',
             populate: {
@@ -38,13 +58,13 @@ export const getAllPresentations = async (req, res) => {
         }
     ]);
      
-    const createdByUserPresentations = presentations.filter(p => p.createdBy == req.userId);
-    if(!createdByUserPresentations[0]) return res.json({message: "There is no presentation created by this user"})
+    if(!publicPresentations[0] && !privatePresentations[0]) return res.json({message: "There is no presentation created or collaborated by this user"})
     
     res.status(200).json({
         status: 'success',
         data: { 
-            createdByUserPresentations
+            publicPresentations: publicPresentations,
+            privatePresentations: privatePresentations
         }
     })
 }
@@ -73,7 +93,7 @@ export const getPresentationById = async (req, res) => {
     })
 }
 
-export const createPresentation = async (req, res) => {
+export const createPublicPresentation = async (req, res) => {
     const alreadyPresentationExist = await Presentation.findOne({ name: req.body.name});
     if(alreadyPresentationExist) return res.status(400).json({ message: "Presentation already exists"});
 
@@ -87,7 +107,8 @@ export const createPresentation = async (req, res) => {
                 "count": 0
             }
         ],
-        "chartType": "bar"
+        "chartType": "bar",
+        "slideType": "multi"
     },);
     newPresentation.currentSlide = newPresentation.slides[0];
     const presentationSaved = await newPresentation.save();
@@ -121,6 +142,8 @@ export const updatePresentationNameById = async (req, res) => {
 export const deletePresentationById = async (req, res) => {
     const presentation = await Presentation.findByIdAndDelete(req.body.presentationId);
     if(!presentation) return res.status(404).json({ message: "Presentation doesn't exist"});
+    if(presentation.isPresenting) return res.status(400).json({ message: "Can not delete presentation when it is presenting now"});
+
     res.status(200).json({
         status: 'success',
     });
@@ -238,7 +261,8 @@ export const changeAllSlides = async (req, res) => {
     const { slides, presentationId } = req.body; 
     const presentation = await Presentation.findById(presentationId);
     if(!presentation) return res.status(400).json({ message: "Presentation does not exist"});
-    
+    if(presentation.isPresenting) return res.status(400).json({ message: "Can not edit presentation when it is presenting"});
+
     let updatedPresentation;
 
     // Handle if the current presented slide is deleted new slides array
@@ -313,7 +337,7 @@ export const deleteAllSlides = async (req, res) => {
 }
 
 // Answer public presentation: only handle public presentation in stage 2 of the project
-export const answerSlideQuestion = async (req, res) => {
+export const answerPublicSlideQuestion = async (req, res) => {
     const { presentationId, answerId } = req.body; 
     const presentation = await Presentation.findById(presentationId);
     if(!presentation) return res.status(400).json({ message: "Presentation does not exist"});
@@ -357,6 +381,125 @@ export const answerSlideQuestion = async (req, res) => {
         status: 'success',
         data: { 
             updatedPresentation
+        }
+    })
+}
+
+export const startPresent = async (req, res) => {
+    const {presentationId } = req.body; 
+   
+    const presentation = await Presentation.findById(presentationId);
+    if(!presentation) return res.status(400).json({ message: "Presentation does not exist"});
+    if(presentation.isPresenting) return res.status(400).json({ message: "Presentation is presenting now"});
+    
+    // Handle group presentation presenting
+    if(presentation.isPrivate){
+        const groupPresentingPresentation = await Presentation.find({
+            groupId: groupId,
+            isPresenting: true
+        });
+
+        if (groupPresentingPresentation) 
+            return res.status(400).json({
+                status: 'failed',
+                message: "There is another presenting presentation in this group",
+                data: {
+                    groupPresentingPresentation
+                }
+            });
+    }
+
+    const updatedPresentation = await Presentation.findByIdAndUpdate(presentationId, {
+        isPresenting: true
+    }, { new: true })
+    res.status(200).json({
+        status: 'success',
+        data: { 
+            updatedPresentation
+        }
+    })
+}
+
+export const stopPresent = async (req, res) => {
+    const {presentationId } = req.body; 
+   
+    const presentation = await Presentation.findById(presentationId);
+    if(!presentation) return res.status(400).json({ message: "Presentation does not exist"});
+    if(!presentation.isPresenting) return res.status(400).json({ message: "Presentation is not presenting"});
+    
+    const updatedPresentation = await Presentation.findByIdAndUpdate(presentationId, {
+        isPresenting: false
+    }, { new: true })
+    res.status(200).json({
+        status: 'success',
+        data: { 
+            updatedPresentation
+        }
+    })
+}
+
+export const isPresenting = async (req, res) => {
+    const {presentationId } = req.body; 
+   
+    const presentation = await Presentation.findById(presentationId);
+    if(!presentation) return res.status(400).json({ message: "Presentation does not exist"});
+
+    res.status(200).json({
+        status: 'success',
+        data: {
+            isPresenting:  presentation.isPresenting
+        }
+    })
+}
+
+export const isGroupPresenting = async (req, res) => {
+    const {presentationId, groupId } = req.body; 
+   
+    const presentation = await Presentation.findById(presentationId);
+    if(!presentation) return res.status(400).json({ message: "Presentation does not exist"});
+    if(!presentation.isPrivate) return res.status(400).json({ message: "Presentation is not a group presentation "});
+
+    const groupPresentingPresentation = await Presentation.find({
+        groupId: groupId,
+        isPresenting: true
+    })
+
+    let isPresenting = false;
+    if (groupPresentingPresentation) isPresenting = true;
+
+    res.status(200).json({
+        status: 'success',
+        data: {
+            isPresenting:  isPresenting,
+            groupPresentingPresentation
+        }
+    })
+}
+
+export const createPrivatePresentation = async (req, res) => {
+    const {name, groupId} = req.body;
+    const alreadyPresentationExist = await Presentation.findOne({ name: name});
+    if(alreadyPresentationExist) return res.status(400).json({ message: "Presentation already exists"});
+
+    // Create new presentation with a default slide and set the default to be the current presented slide
+    const newPresentation = new Presentation({name: name, groupId: groupId, createdBy: req.userId});
+    newPresentation.slides.push({
+        "question": "Sample Question",
+        "answers": [
+            {
+                "answer": "Sample Answer",
+                "count": 0
+            }
+        ],
+        "chartType": "bar",
+        "slideType": "multi"
+    },);
+    newPresentation.currentSlide = newPresentation.slides[0];
+    const presentationSaved = await newPresentation.save();
+    res.status(200).json({
+        status: 'success',
+        data: { 
+            presentationSaved
         }
     })
 }

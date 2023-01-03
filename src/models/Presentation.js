@@ -8,7 +8,10 @@ const slideSchema = new Schema({
     }],
     correctAnswer: { type: String, trim: true, default:""},
     answeredUser: [{type: Schema.Types.ObjectId, ref:'User', default:[]}],
-    chartType: { type: String, trim: true, default:"bar"}
+    chartType: { type: String, trim: true, default:"bar"},
+    subheading: { type: String, trim: true, default:""},
+    paragraph: { type: String, trim: true, default:""},
+    slideType: { type: String, trim: true, default:"multi"}
 }); 
 
 const presentationSchema = new Schema({
@@ -16,6 +19,7 @@ const presentationSchema = new Schema({
     currentSlide: slideSchema,
     slides: [slideSchema],
     isPrivate: { type:Boolean, required: true, default: false},
+    isPresenting: { type:Boolean, required: true, default: false},
     collaborators: [{type: Schema.Types.ObjectId, ref:'User', default:[]}],
     createdBy: {type: Schema.Types.ObjectId, ref:'User'},
     groupId: {type: Schema.Types.ObjectId, ref:'Group'}
