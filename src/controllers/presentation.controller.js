@@ -1,7 +1,7 @@
 import Presentation from "../models/Presentation.js";
 import User from '../models/User.js';
 
-export const getPresentations = async (req, res) => {
+export const getTotalPresentations = async (req, res) => {
     const presentations = await Presentation.find().populate([
         { 
             path: 'slides',
