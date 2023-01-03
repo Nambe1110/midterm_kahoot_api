@@ -1,5 +1,6 @@
 import Presentation from "../models/Presentation.js";
 import User from '../models/User.js';
+import Group from "../models/Group.js";
 
 export const getTotalPresentations = async (req, res) => {
     const presentations = await Presentation.find().populate([
@@ -350,7 +351,7 @@ export const answerPublicSlideQuestion = async (req, res) => {
     let foundAns = presentation.currentSlide.answers.filter(ans => ans._id.equals(answerId));
     if(!foundAns[0]) return res.status(400).json({ message: "The answer ID does not exist in the current presentation"});
     
-    // add user id to the answered User if user logined
+    // add user id to the answered User if user login
     if(req.userId) {
         presentation.currentSlide.answeredUser.push(req.userId);
     }
@@ -395,11 +396,11 @@ export const startPresent = async (req, res) => {
     // Handle group presentation presenting
     if(presentation.isPrivate){
         const groupPresentingPresentation = await Presentation.find({
-            groupId: groupId,
+            groupId: presentation.groupId,
             isPresenting: true
         });
 
-        if (groupPresentingPresentation) 
+        if (groupPresentingPresentation[0]) 
             return res.status(400).json({
                 status: 'failed',
                 message: "There is another presenting presentation in this group",
@@ -439,7 +440,7 @@ export const stopPresent = async (req, res) => {
 }
 
 export const isPresenting = async (req, res) => {
-    const {presentationId } = req.body; 
+    const {presentationId } = req.params; 
    
     const presentation = await Presentation.findById(presentationId);
     if(!presentation) return res.status(400).json({ message: "Presentation does not exist"});
@@ -453,11 +454,10 @@ export const isPresenting = async (req, res) => {
 }
 
 export const isGroupPresenting = async (req, res) => {
-    const {presentationId, groupId } = req.body; 
-   
-    const presentation = await Presentation.findById(presentationId);
-    if(!presentation) return res.status(400).json({ message: "Presentation does not exist"});
-    if(!presentation.isPrivate) return res.status(400).json({ message: "Presentation is not a group presentation "});
+    const { groupId } = req.params; 
+    
+    const group = await Group.findById(groupId);
+    if(!group) return res.status(404).json({ message: "Group doesn't exist"});
 
     const groupPresentingPresentation = await Presentation.find({
         groupId: groupId,
@@ -465,7 +465,7 @@ export const isGroupPresenting = async (req, res) => {
     })
 
     let isPresenting = false;
-    if (groupPresentingPresentation) isPresenting = true;
+    if (groupPresentingPresentation[0]) isPresenting = true;
 
     res.status(200).json({
         status: 'success',
@@ -478,11 +478,18 @@ export const isGroupPresenting = async (req, res) => {
 
 export const createPrivatePresentation = async (req, res) => {
     const {name, groupId} = req.body;
-    const alreadyPresentationExist = await Presentation.findOne({ name: name});
-    if(alreadyPresentationExist) return res.status(400).json({ message: "Presentation already exists"});
+    const alreadyPresentationExist = await Presentation.findOne({name: name});
+    if(alreadyPresentationExist) return res.status(400).json({ message: "Presentation name already exists"});
+
+    const group = await Group.findById(groupId);
+    if(!group) return res.status(404).json({ message: "Group doesn't exist"});
 
     // Create new presentation with a default slide and set the default to be the current presented slide
-    const newPresentation = new Presentation({name: name, groupId: groupId, createdBy: req.userId});
+    const newPresentation = new Presentation();
+    newPresentation.name = name;
+    newPresentation.groupId = groupId;
+    newPresentation.createdBy = req.userId;
+    newPresentation.isPrivate = true
     newPresentation.slides.push({
         "question": "Sample Question",
         "answers": [

@@ -16,7 +16,7 @@ router.patch('/deleteAllSlides', [authJwt.verifyToken, authJwt.isOwnerOfPresenta
 router.patch('/vote', [authJwt.verifyIfHaveToken], PresentationsCtrl.answerPublicSlideQuestion);
 router.delete('/delete', [authJwt.verifyToken, authJwt.isOwnerOfPresentation], PresentationsCtrl.deletePresentationById);
 
-router.patch('/isPresenting', PresentationsCtrl.isPresenting); // Check whether a presentation is presenting
+router.get('/isPresenting/:presentationId', PresentationsCtrl.isPresenting); // Check whether a presentation is presenting
 router.patch('/present', PresentationsCtrl.startPresent);
 router.patch('/stopPresent', PresentationsCtrl.stopPresent);
 
@@ -28,7 +28,7 @@ router.patch('/removeCollaborators', [authJwt.verifyToken, authJwt.isOwnerOfPres
 
 // Group presentation //
 router.post('/createPrivate', [authJwt.verifyToken], PresentationsCtrl.createPrivatePresentation);
-router.patch('/isGroupPresenting', PresentationsCtrl.isGroupPresenting); // Check whether there is a presenting presentation in a group
+router.get('/isGroupPresenting/:groupId', PresentationsCtrl.isGroupPresenting); // Check whether there is a presenting presentation in a group
 
 
 
