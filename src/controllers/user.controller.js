@@ -1,4 +1,5 @@
 import User from "../models/User.js";
+import Role from '../models/Role.js';
 import Token from "../models/Token.js";
 import Group from "../models/Group.js";
 import Notification from "../models/Notification.js";
@@ -21,12 +22,12 @@ export const getMe = async (req, res) => {
     me.roles.member = groups.filter(group => me.roles.member.includes(group._id));
 
     const unreadNotifications = await Notification.find({userId: me._id, isRead: false})
-    
+    me.unread_count = unreadNotifications.length;
+
     res.status(200).json({
         status: 'success',
         data: {
-            user: me,
-            unread_count: unreadNotifications.length
+            user: me
         }
     })
 }

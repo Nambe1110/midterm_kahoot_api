@@ -13,6 +13,7 @@ const userSchema = new Schema({
     firstname: { type: String, required: true, trim: true},
     lastname: { type: String, required: true, trim: true},
     yearOfBirth: {type: Number},
+    unread_count: {type: Number},
     address: { type: String, trim: true},
     avatar: {type:String, default: 'https://shop.phuongdonghuyenbi.vn/wp-content/uploads/avatars/1510/default-avatar-bpthumb.png'},
     roles:{
