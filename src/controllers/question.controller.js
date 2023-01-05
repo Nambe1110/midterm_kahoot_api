@@ -65,7 +65,7 @@ export const vote = async (req, res) => {
     if (userId) {
         const user = await User.findById(userId);
         if (!user) return res.status(400).send("Invalid user");
-        if (question.votedUsers.includes(userId)) return res.status(200).json({message: "This user has already voted for this question"});
+        if (question.votedUsers.includes(userId)) return res.status(400).json({message: "This user has already voted for this question"});
         
         question.votedUsers.push(userId);
     }
