@@ -152,17 +152,18 @@ export const deletePresentationById = async (req, res) => {
 
 export const addCollaborators = async (req, res) => {
     try {
-        const { presentationId, userId} = req.body;
+        const { presentationId, email} = req.body;
+
+        const user = await User.findOne({email: email});
+        if(!user) return res.status(404).json({ message: "User not found"});
 
         const presentation = await Presentation.findById(presentationId);
         if(!presentation) return res.status(404).json({ message: "Presentation doesn't exist"});
         if(presentation.isPrivate) return res.status(404).json({ message: "Can not add collaborator to private presentation"});
-        if (presentation.createdBy == userId) return res.status(404).json({ message: "Can not add the user who created the presentaion to be a collaborator"});
-        if (presentation.collaborators.includes(userId)) return res.status(404).json({ message: "This user is already a collaborator"});
-        const user = await User.findById(userId);
-        if(!user) return res.status(404).json({ message: "User not found"});
+        if (presentation.createdBy == user._id) return res.status(404).json({ message: "Can not add the user who created the presentaion to be a collaborator"});
+        if (presentation.collaborators.includes(user._id)) return res.status(404).json({ message: "This user is already a collaborator"});
 
-        presentation.collaborators.push(userId);
+        presentation.collaborators.push(user._id);
 
         const updatedPresentation = await Presentation.findByIdAndUpdate(presentationId, {
             collaborators:  presentation.collaborators
@@ -191,16 +192,17 @@ export const addCollaborators = async (req, res) => {
 }
 
 export const removeCollaborators = async (req, res) => {
-    const { presentationId, userId} = req.body;
+    const { presentationId, email} = req.body;
+
+    const user = await User.findOne({email: email});
+    if(!user) return res.status(404).json({ message: "User not found"});
 
     const presentation = await Presentation.findById(presentationId);
     if(!presentation) return res.status(404).json({ message: "Presentation doesn't exist"});
     if(presentation.isPrivate) return res.status(404).json({ message: "Can not remove collaborator of private presentation"});
-    if (!presentation.collaborators.includes(userId)) return res.status(404).json({ message: "This user is not a collaborator of this presentation"});
-    const user = await User.findById(userId);
-    if(!user) return res.status(404).json({ message: "User not found"});
-
-    const index = presentation.collaborators.indexOf(userId);
+    if (!presentation.collaborators.includes(user._id)) return res.status(404).json({ message: "This user is not a collaborator of this presentation"});
+    
+    const index = presentation.collaborators.indexOf(user._id);
     presentation.collaborators.splice(index, 1);
 
     const updatedPresentation = await Presentation.findByIdAndUpdate(presentationId, {

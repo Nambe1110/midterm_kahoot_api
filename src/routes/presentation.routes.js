@@ -22,8 +22,8 @@ router.patch('/stopPresent', PresentationsCtrl.stopPresent);
 
 // Public Presentation //
 router.post('/create', [authJwt.verifyToken], PresentationsCtrl.createPublicPresentation);
-router.patch('/addCollaborators', [authJwt.verifyToken, authJwt.isOwnerOfPresentation], PresentationsCtrl.addCollaborators);
-router.patch('/removeCollaborators', [authJwt.verifyToken, authJwt.isOwnerOfPresentation], PresentationsCtrl.removeCollaborators);
+router.patch('/addCollaborators',  PresentationsCtrl.addCollaborators);
+router.patch('/removeCollaborators',  PresentationsCtrl.removeCollaborators);
 
 
 // Group presentation //

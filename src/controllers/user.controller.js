@@ -47,6 +47,22 @@ export const getUserById = async (req, res) => {
     })
 }
 
+export const getUserByEmail = async (req, res) => {
+    const user = await User.findOne({email: req.params.email});
+    if(!user) return res.status(404).json({ message: "User doesn't exist"});
+    const groups = await Group.find();
+    user.roles.owner = groups.filter(group => user.roles.owner.includes(group._id));
+    user.roles.co_owner = groups.filter(group => user.roles.co_owner.includes(group._id));
+    user.roles.member = groups.filter(group => user.roles.member.includes(group._id));
+
+    res.status(200).json({
+        status: 'success',
+        data: { 
+            user
+        }
+    })
+}
+
 export const updateUserInfoById = async (req, res) => {
    
     const user = await User.findById(req.body.userId);
