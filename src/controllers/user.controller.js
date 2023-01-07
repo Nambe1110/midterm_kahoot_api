@@ -131,14 +131,14 @@ export const activateAccountByToken = async (req, res) => {
 export const resetPassword = async (req, res) => {
     try {
         const user = await User.findById(req.body.userId);
-        if (!user) return res.status(400).send("Invalid user");
+        if (!user) return res.status(400).json({message: "Invalid user"});
     
         const token = await Token.findOne({
             userId: user._id,
             token: req.body.token,
             tokenType: "resetPassword"
         });
-        if (!token) return res.status(400).send("Invalid token");
+        if (!token) return res.status(400).json({message: "Invalid token"});
 
         // Token will expired in 60 minutes after created
         const onehour= 1000 * 60 * 60;
