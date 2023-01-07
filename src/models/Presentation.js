@@ -22,7 +22,7 @@ const presentationSchema = new Schema({
     isPresenting: { type:Boolean, required: true, default: false},
     collaborators: [{type: Schema.Types.ObjectId, ref:'User', default:[]}],
     createdBy: {type: Schema.Types.ObjectId, ref:'User'},
-    groupId: {type: Schema.Types.ObjectId, ref:'Group'}
+    groupId: {type: Schema.Types.ObjectId, ref:'Group', default:null}
 },{
     timestamps: true,
     versionKey: false,
