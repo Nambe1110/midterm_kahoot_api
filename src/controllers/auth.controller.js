@@ -164,7 +164,7 @@ export const requestResetPassword = async (req, res) => {
 
     res.status(200).json({
         status: 'success',
-        message: 'An Email sent to your registered email account. Please follow the provided link to continue the process of reseting your account password. <br>'
+        message: 'An Email sent to your registered email account. Please follow the provided link to continue the process of reseting your account password.'
     })
 };
 
