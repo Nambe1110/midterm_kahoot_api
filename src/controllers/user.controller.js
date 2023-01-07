@@ -15,7 +15,7 @@ export const getUsers = async (req, res) => {
 }
 
 export const getMe = async (req, res) => {
-    const me = await User.findById({ _id: req.userId});
+    const me = await User.findById(req.userId);
     const groups = await Group.find();
     me.roles.owner = groups.filter(group => me.roles.owner.includes(group._id));
     me.roles.co_owner = groups.filter(group => me.roles.co_owner.includes(group._id));

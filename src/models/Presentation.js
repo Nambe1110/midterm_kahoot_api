@@ -1,11 +1,18 @@
 import {Schema, model} from 'mongoose';
 
+const answerSchema = new Schema({
+    answer: { type: String, trim: true, default:""},
+    count: { type: Number, default: 0},
+    answersList: [{
+        userId: {type: Schema.Types.ObjectId, ref:'User'},
+        name: {type: String, trim: true},
+        answeredAt: {type: Date, default: new Date()}
+    }]
+}); 
+
 const slideSchema = new Schema({
     question: { type: String, trim: true, default:"", maxlength: 1000},
-    answers: [{
-        answer: { type: String, trim: true, default:""},
-        count: { type: Number, default: 0}
-    }],
+    answers: [answerSchema],
     correctAnswer: { type: String, trim: true, default:""},
     answeredUser: [{type: Schema.Types.ObjectId, ref:'User', default:[]}],
     chartType: { type: String, trim: true, default:"bar"},

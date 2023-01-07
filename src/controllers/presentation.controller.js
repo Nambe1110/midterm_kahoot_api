@@ -70,6 +70,42 @@ export const getAllPresentations = async (req, res) => {
     })
 }
 
+export const getPresentationsOfGroup = async (req, res) => {
+    const presentations = await Presentation.find({
+        groupId: req.params.groupId,
+        isPrivate: true
+    }).populate([
+        { 
+            path: 'slides',
+            populate: {
+                path: 'answeredUser',
+                model: 'User'
+            } 
+        },
+        {
+            path: "collaborators",
+            model: 'User'
+        },
+        {
+            path: "createdBy",
+            model: 'User'
+        },
+        { 
+            path: 'currentSlide',
+            populate: {
+                path: 'answeredUser',
+                model: 'User'
+            } 
+        }
+    ]);
+    res.status(200).json({
+        status: 'success',
+        data: { 
+            presentations
+        }
+    })
+}
+
 export const getPresentationById = async (req, res) => {
     const presentation = await Presentation.findById(req.params.presentationId).populate([
         { 
@@ -339,11 +375,13 @@ export const deleteAllSlides = async (req, res) => {
     })
 }
 
-// Answer public presentation: only handle public presentation in stage 2 of the project
-export const answerPublicSlideQuestion = async (req, res) => {
+// Answer question of multiple choice slide in both public and private presentation
+export const answerSlideQuestion = async (req, res) => {
     const { presentationId, answerId } = req.body; 
     const presentation = await Presentation.findById(presentationId);
     if(!presentation) return res.status(400).json({ message: "Presentation does not exist"});
+    if(!presentation.isPresenting) return res.status(400).json({ message: "This presentation is not presenting"});
+    if(presentation.currentSlide.slideType != "multi") return res.status(400).json({ message: "The current presenting slide is not a mutiple choice slide"});
     
     if(req.userId) {
         let answeredUser = presentation.currentSlide.answeredUser.filter(userId => userId.equals(req.userId));
@@ -351,18 +389,46 @@ export const answerPublicSlideQuestion = async (req, res) => {
     }
 
     let foundAns = presentation.currentSlide.answers.filter(ans => ans._id.equals(answerId));
-    if(!foundAns[0]) return res.status(400).json({ message: "The answer ID does not exist in the current presentation"});
+    if(!foundAns[0]) return res.status(400).json({ message: "The answer ID does not exist in the current presenting presentation"});
     
+    // if this is a group presentation
+    if(presentation.isPrivate) {
+        // Check whether user is member or coowner or owner of group
+        const user = await User.findById(req.userId);
+        const roleOfUser = user.roles;
+        let index1 =  roleOfUser.owner.indexOf(presentation.groupId);
+        let index2 =  roleOfUser.co_owner.indexOf(presentation.groupId);
+        let index3 =  roleOfUser.member.indexOf(presentation.groupId);
+        if (index1 <= -1 && index2 <= -1 && index3 <= -1) {
+            return res.status(400).json({ message: "This user has to be a member/coowner/owner of this group to join the group presentation"});
+        }
+
+        presentation.currentSlide.answers.map(ans =>{ 
+            if (ans._id.equals(answerId)) {
+                ans.count += 1;
+                ans.answersList.push({
+                    userId: req.userId,
+                    name: req.userFullname,
+                    answeredAt: new Date()
+                });
+            }
+        });
+    }
+    else {
+        // This is a public presentation
+        // Increase count in the currentSlide property and in the Presentation.slides[index]
+        presentation.currentSlide.answers.map(ans =>{ 
+            if (ans._id.equals(answerId)) {
+                ans.count += 1;
+            }
+        });
+    }
+
     // add user id to the answered User if user login
     if(req.userId) {
         presentation.currentSlide.answeredUser.push(req.userId);
     }
-    // Increase count in the currentSlide property and in the Presentation.slides[index]
-    presentation.currentSlide.answers.map(ans =>{ 
-        if (ans._id.equals(answerId)) {
-            ans.count += 1;
-        }
-    });
+
     presentation.slides.map(slide => {
         if (slide._id.equals(presentation.currentSlide._id)) {
             slide.answers = presentation.currentSlide.answers;
@@ -397,12 +463,12 @@ export const startPresent = async (req, res) => {
     
     // Handle group presentation presenting
     if(presentation.isPrivate){
-        const groupPresentingPresentation = await Presentation.find({
+        const groupPresentingPresentation = await Presentation.findOne({
             groupId: presentation.groupId,
             isPresenting: true
         });
 
-        if (groupPresentingPresentation[0]) 
+        if (groupPresentingPresentation) 
             return res.status(400).json({
                 status: 'failed',
                 message: "There is another presenting presentation in this group",
@@ -419,6 +485,23 @@ export const startPresent = async (req, res) => {
         status: 'success',
         data: { 
             updatedPresentation
+        }
+    })
+}
+
+export const listAnswersOfSlide = async (req, res) => {
+    const {presentationId , slideId} = req.params; 
+   
+    const presentation = await Presentation.findById(presentationId);
+    if(!presentation) return res.status(400).json({ message: "Presentation does not exist"});
+    
+    let foundSlide = presentation.slides.filter(slide => slide._id.equals(slideId));
+    if(!foundSlide[0]) return res.status(400).json({ message: "The slide ID does not exist in the current presenting presentation"});
+    
+    res.status(200).json({
+        status: 'success',
+        data: { 
+            foundSlide
         }
     })
 }
