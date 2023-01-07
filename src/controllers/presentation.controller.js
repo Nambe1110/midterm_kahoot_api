@@ -494,14 +494,18 @@ export const listAnswersOfSlide = async (req, res) => {
    
     const presentation = await Presentation.findById(presentationId);
     if(!presentation) return res.status(400).json({ message: "Presentation does not exist"});
-    
+    if(!presentation.isPrivate) return res.status(400).json({ message: "This presentation is not a group presentation"});
+
     let foundSlide = presentation.slides.filter(slide => slide._id.equals(slideId));
-    if(!foundSlide[0]) return res.status(400).json({ message: "The slide ID does not exist in the current presenting presentation"});
+    if(!foundSlide[0]) return res.status(400).json({ message: "The slide ID does not exist in the presentation"});
+    if(foundSlide[0].slideType != "multi") return res.status(400).json({ message: "The slide is not a mutiple choice slide"});
     
     res.status(200).json({
         status: 'success',
         data: { 
-            foundSlide
+            question: foundSlide[0].question,
+            answers: foundSlide[0].answers,
+            correctAnswer: foundSlide[0].correctAnswer
         }
     })
 }

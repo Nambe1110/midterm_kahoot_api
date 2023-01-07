@@ -32,7 +32,7 @@ router.patch('/removeCollaborators',  PresentationsCtrl.removeCollaborators);
 // Group presentation //
 router.post('/createPrivate', [authJwt.verifyToken], PresentationsCtrl.createPrivatePresentation);
 router.get('/isGroupPresenting/:groupId', PresentationsCtrl.isGroupPresenting); // Check whether there is a presenting presentation in a group
-router.get('/slideAnswers/:presentationId/:slideId', [authJwt.verifyIfHaveToken], PresentationsCtrl.listAnswersOfSlide);
+router.get('/slideAnswers/:presentationId/:slideId', PresentationsCtrl.listAnswersOfSlide);
 
 
 
