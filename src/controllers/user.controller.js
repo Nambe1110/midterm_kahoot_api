@@ -144,7 +144,7 @@ export const resetPassword = async (req, res) => {
         const onehour= 1000 * 60 * 60;
         if (Date.now() - token.createdAt > onehour) {
             await Token.findByIdAndDelete(token._id);
-            return res.status(400).send("Token expired");
+            return res.status(400).json({message: "Token expired"});
         }
     
         await User.findByIdAndUpdate(user._id, {
@@ -152,9 +152,9 @@ export const resetPassword = async (req, res) => {
         }, { new: true } );
         await Token.findByIdAndDelete(token._id);
     
-        res.send("Reset password successfully");
+        res.json({message: "Reset password successfully"});
     } catch (error) {
-        res.status(400).send("An error occured");
+        res.status(400).json({message: "An error occured"});
         console.log(error);
     }
 }
