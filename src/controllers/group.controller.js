@@ -1,5 +1,6 @@
 import Group from "../models/Group.js";
 import User from "../models/User.js";
+import Presentation from "../models/Presentation.js";
 import { Email } from "../modules/Email.js";
 
 export const createGroup = async (req, res) => {
