@@ -1,5 +1,6 @@
 import Question from "../models/Question.js";
 import User from "../models/User.js";
+import Presentation from "../models/Presentation.js";
 
 export const getAllQuestions = async (req, res) => {
     const questions = await Question.find().sort({voteCount:-1});
@@ -29,6 +30,9 @@ export const addQuestion = async (req, res) => {
     const {description, createdUserName, presentationId} = req.body;
     const newQuestion = new Question({description, createdUserName, presentationId});
 
+    const presentation = await Presentation.findById(presentationId);
+    if(!presentation) return res.status(404).json({ message: "Presentation does not exist"});
+
     const QuestionSaved = await newQuestion.save();
     res.status(200).json({
         status: 'success',
@@ -42,7 +46,7 @@ export const markAsAnswered = async (req, res) => {
     const question = await Question.findById(req.body.questionId);
     if(!question) return res.status(404).json({ message: "Question doesn't exist"});
 
-    if(question.isAnswered) return res.status(200).json({message: "This Question is already answered"});
+    if(question.isAnswered) return res.status(403).json({message: "This Question is already answered"});
 
     const updatedQuestion = await Question.findByIdAndUpdate(req.body.questionId, {
         isAnswered: true,
@@ -60,12 +64,11 @@ export const vote = async (req, res) => {
 
     const question = await Question.findById(questionId);
     if(!question) return res.status(404).json({ message: "Question doesn't exist"});
-
     // If user is authenticated
     if (userId) {
         const user = await User.findById(userId);
-        if (!user) return res.status(400).send("Invalid user");
-        if (question.votedUsers.includes(userId)) return res.status(400).json({message: "This user has already voted for this question"});
+        if (!user) return res.status(404).send("Invalid user");
+        if (question.votedUsers.includes(userId)) return res.status(403).json({message: "This user has already voted for this question"});
         
         question.votedUsers.push(userId);
     }
