@@ -89,6 +89,12 @@ export const updateGroupImageById = async (req, res) => {
 export const deleteGroupById = async (req, res) => {
     const group = await Group.findByIdAndDelete(req.body.groupId);
     if(!group) return res.status(404).json({ message: "Group doesn't exist"});
+
+    const groupPresentations = await Presentation.deleteMany({
+        groupId: group._id,
+        isPrivate: true
+    });
+
     res.status(200).json({
         status: 'success',
     });
