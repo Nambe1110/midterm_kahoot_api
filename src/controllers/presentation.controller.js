@@ -221,7 +221,7 @@ export const addCollaborators = async (req, res) => {
         if(!presentation) return res.status(404).json({ message: "Presentation doesn't exist"});
         if(presentation.isPrivate) return res.status(404).json({ message: "Can not add collaborator to private presentation"});
         if (presentation.createdBy == user._id) return res.status(404).json({ message: "Can not add the user who created the presentaion to be a collaborator"});
-        if (presentation.collaborators.includes(user._id)) return res.status(404).json({ message: "This user is already a collaborator"});
+        if (presentation.collaborators.includes(user._id)) return res.status(403).json({ message: "This user is already a collaborator"});
 
         presentation.collaborators.push(user._id);
 
@@ -524,12 +524,13 @@ export const listAnswersOfSlide = async (req, res) => {
     if(!foundSlide[0]) return res.status(404).json({ message: "The slide ID does not exist in the presentation"});
     if(foundSlide[0].slideType != "multi") return res.status(403).json({ message: "The slide is not a mutiple choice slide"});
     
+    foundSlide[0].answers.map(answer => answer.answersList.map(ans => ans.answerContent = answer.answer));
+    const answerLists = foundSlide[0].answers.map(answer => answer.answersList)
+    const answers = [...new Set(answerLists.flat())];
     res.status(200).json({
         status: 'success',
         data: { 
-            question: foundSlide[0].question,
-            answers: foundSlide[0].answers,
-            correctAnswer: foundSlide[0].correctAnswer
+            answers
         }
     })
 }
