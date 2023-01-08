@@ -201,10 +201,23 @@ export const updatePresentationNameById = async (req, res) => {
 }
 
 export const deletePresentationById = async (req, res) => {
-    const presentation = await Presentation.findByIdAndDelete(req.body.presentationId);
+    const presentation = await Presentation.findById(req.body.presentationId);
     if(!presentation) return res.status(404).json({ message: "Presentation doesn't exist"});
     if(presentation.isPresenting) return res.status(403).json({ message: "Can not delete presentation when it is presenting now"});
 
+    if(presentation.isPrivate) {
+        const group = await Group.findById(presentation.groupId);
+        if (group.owner_id != req.userId && !group.co_owner_id.includes(req.userId)) {
+            return res.status(401).json({ message: "Requested owner or coowner role of group to delete this group presentation"});
+        }
+    }
+    else {
+        if (!presentation.createdBy.equals(req.userId)) {
+            return res.status(401).json({ message: "Requested owner role of this public presentation"});
+        }
+    }
+
+    const deletedPresentation = await Presentation.findByIdAndDelete(req.body.presentationId);
     res.status(200).json({
         status: 'success',
     });
@@ -213,16 +226,19 @@ export const deletePresentationById = async (req, res) => {
 export const addCollaborators = async (req, res) => {
     try {
         const { presentationId, email} = req.body;
-
-        const user = await User.findOne({email: email});
-        if(!user) return res.status(404).json({ message: "User not found"});
-
         const presentation = await Presentation.findById(presentationId);
         if(!presentation) return res.status(404).json({ message: "Presentation doesn't exist"});
         if(presentation.isPrivate) return res.status(404).json({ message: "Can not add collaborator to private presentation"});
+        
+        if (!presentation.createdBy.equals(req.userId)) {
+            return res.status(401).json({ message: "Requested owner role of this public presentation"});
+        }
+
+        const user = await User.findOne({email: email});
+        if(!user) return res.status(404).json({ message: "User not found"});
         if (presentation.createdBy == user._id) return res.status(404).json({ message: "Can not add the user who created the presentaion to be a collaborator"});
         if (presentation.collaborators.includes(user._id)) return res.status(403).json({ message: "This user is already a collaborator"});
-
+        
         presentation.collaborators.push(user._id);
 
         const updatedPresentation = await Presentation.findByIdAndUpdate(presentationId, {
@@ -254,14 +270,18 @@ export const addCollaborators = async (req, res) => {
 export const removeCollaborators = async (req, res) => {
     const { presentationId, email} = req.body;
 
-    const user = await User.findOne({email: email});
-    if(!user) return res.status(404).json({ message: "User not found"});
-
     const presentation = await Presentation.findById(presentationId);
     if(!presentation) return res.status(404).json({ message: "Presentation doesn't exist"});
     if(presentation.isPrivate) return res.status(403).json({ message: "Can not remove collaborator of private presentation"});
-    if (!presentation.collaborators.includes(user._id)) return res.status(403).json({ message: "This user is not a collaborator of this presentation"});
     
+    if (!presentation.createdBy.equals(req.userId)) {
+        return res.status(401).json({ message: "Requested owner role of this public presentation"});
+    }
+    
+    const user = await User.findOne({email: email});
+    if(!user) return res.status(404).json({ message: "User not found"})
+    if (!presentation.collaborators.includes(user._id)) return res.status(403).json({ message: "This user is not a collaborator of this presentation"});
+
     const index = presentation.collaborators.indexOf(user._id);
     presentation.collaborators.splice(index, 1);
 
@@ -289,7 +309,7 @@ export const removeCollaborators = async (req, res) => {
 }
 
 export const toPrivate = async (req, res) => {
-    const presentation = await Presentation.findByIdAndDelete(req.body.presentationId);
+    const presentation = await Presentation.findById(req.body.presentationId);
     if(!presentation) return res.status(404).json({ message: "Presentation doesn't exist"});
     if(presentation.isPrivate) return res.status(200).json({message: "This presentation is already private"});
 
@@ -305,7 +325,7 @@ export const toPrivate = async (req, res) => {
 }
 
 export const toPublic = async (req, res) => {
-    const presentation = await Presentation.findByIdAndDelete(req.body.presentationId);
+    const presentation = await Presentation.findById(req.body.presentationId);
     if(!presentation) return res.status(404).json({ message: "Presentation doesn't exist"});
     if(!presentation.isPrivate) return res.status(403).json({message: "This presentation is already public"});
 
@@ -325,6 +345,18 @@ export const changeAllSlides = async (req, res) => {
     const presentation = await Presentation.findById(presentationId);
     if(!presentation) return res.status(404).json({ message: "Presentation does not exist"});
     if(presentation.isPresenting) return res.status(403).json({ message: "Can not edit presentation when it is presenting"});
+
+    if(presentation.isPrivate) {
+        const group = await Group.findById(presentation.groupId);
+        if (group.owner_id != req.userId && !group.co_owner_id.includes(req.userId)) {
+            return res.status(401).json({ message: "Requested owner or coowner role of group to edit this group presentation"});
+        }
+    }
+    else {
+        if (!presentation.createdBy.equals(req.userId) && !presentation.collaborators.includes(req.userId)) {
+            return res.status(401).json({ message: "Requested owner/collaborator role of this public presentation"});
+        }
+    }
 
     let updatedPresentation;
 
@@ -364,6 +396,18 @@ export const changeCurrentSlide = async (req, res) => {
   
     let foundSlide = presentation.slides.filter(slide => slide._id.equals(currSlideId));
     if(!foundSlide[0]) return res.status(404).json({ message: "The slide ID does not exist"});
+
+    if(presentation.isPrivate) {
+        const group = await Group.findById(presentation.groupId);
+        if (group.owner_id != req.userId && !group.co_owner_id.includes(req.userId)) {
+            return res.status(401).json({ message: "Requested owner or coowner role of group to edit this group presentation"});
+        }
+    }
+    else {
+        if (!presentation.createdBy.equals(req.userId) && !presentation.collaborators.includes(req.userId)) {
+            return res.status(401).json({ message: "Requested owner/collaborator role of this public presentation"});
+        }
+    }
     
     const updatedPresentation = await Presentation.findByIdAndUpdate(presentationId, {
         currentSlide: foundSlide[0]
@@ -487,6 +531,11 @@ export const startPresent = async (req, res) => {
     
     // Handle group presentation presenting
     if(presentation.isPrivate){
+        const group = await Group.findById(presentation.groupId);
+        if (group.owner_id != req.userId && !group.co_owner_id.includes(req.userId)) {
+            return res.status(401).json({ message: "Requested owner or coowner role of group to start presenting for group presentation"});
+        }
+
         const groupPresentingPresentation = await Presentation.findOne({
             groupId: presentation.groupId,
             isPresenting: true
@@ -501,7 +550,11 @@ export const startPresent = async (req, res) => {
                 }
             });
     }
-
+    
+    // Handle public presentation presenting
+    if (!presentation.createdBy.equals(req.userId)) {
+        return res.status(401).json({ message: "Requested owner role of this public presentation"});
+    }
     const updatedPresentation = await Presentation.findByIdAndUpdate(presentationId, {
         isPresenting: true
     }, { new: true })
@@ -542,6 +595,18 @@ export const stopPresent = async (req, res) => {
     if(!presentation) return res.status(404).json({ message: "Presentation does not exist"});
     if(!presentation.isPresenting) return res.status(403).json({ message: "Presentation is not presenting"});
     
+    if(presentation.isPrivate) {
+        const group = await Group.findById(presentation.groupId);
+        if (group.owner_id != req.userId && !group.co_owner_id.includes(req.userId)) {
+            return res.status(401).json({ message: "Requested owner or coowner role of group to stop presenting for this group presentation"});
+        }
+    }
+    else {
+        if (!presentation.createdBy.equals(req.userId)) {
+            return res.status(401).json({ message: "Requested owner role of this public presentation"});
+        }
+    }
+
     const updatedPresentation = await Presentation.findByIdAndUpdate(presentationId, {
         isPresenting: false
     }, { new: true })

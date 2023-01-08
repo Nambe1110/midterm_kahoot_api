@@ -98,7 +98,8 @@ export const googleSignIn = async (req, res) => {
             avatar: realUserData.payload.picture,
             yearOfBirth: null,
             address: null,
-            isActivated: true
+            isActivated: true, 
+            password: await User.encryptPassword("default"),
         })
         let savedUser;
 
