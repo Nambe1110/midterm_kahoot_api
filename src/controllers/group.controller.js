@@ -11,7 +11,7 @@ export const createGroup = async (req, res) => {
     // }
 
     const alredyGroupExist = await Group.findOne({ name: newGroup.name});
-    if(alredyGroupExist) return res.status(400).json({ message: "Group already exists"});
+    if(alredyGroupExist) return res.status(403).json({ message: "Group already exists"});
 
     const groupSaved = await newGroup.save();
 
@@ -59,7 +59,7 @@ export const updateGroupNameById = async (req, res) => {
     if(!group) return res.status(404).json({ message: "Group doesn't exist"});
 
     const alredyGroupExist = await Group.findOne({ name: name});
-    if(alredyGroupExist) return res.status(400).json({ message: "Group name already exists"});
+    if(alredyGroupExist) return res.status(403).json({ message: "Group name already exists"});
 
     const updatedGroup = await Group.findByIdAndUpdate(req.body.groupId, req.body, { new: true })
     res.status(200).json({
@@ -99,7 +99,7 @@ export const addCoOwner = async (req, res) => {
         const group = await Group.findById(req.body.groupId);
         if(!group) return res.status(404).json({ message: "Group doesn't exist"});
         if(req.body.co_owner_id == group.owner_id) {
-            return res.status(404).json({ message: "Failed to invite. User is owner of this group"});
+            return res.status(403).json({ message: "Failed to invite. User is owner of this group"});
         } 
         const user = await User.findById(req.body.co_owner_id);
         if(!user) return res.status(404).json({ message: "User doesn't exist"});
@@ -107,11 +107,11 @@ export const addCoOwner = async (req, res) => {
         // Add userid to the coownerId array of group table
         let i =  group.member_id.indexOf(user._id);
         if (i > -1) { 
-            return res.status(404).json({ message: "User is already a member of this group. Please assign him/her to coowner role"});
+            return res.status(403).json({ message: "User is already a member of this group. Please assign him/her to coowner role"});
         }
         i =  group.co_owner_id.indexOf(user._id);
         if (i > -1) { 
-            return res.status(404).json({ message: "User is already a coowner of this group."});
+            return res.status(403).json({ message: "User is already a coowner of this group."});
         }
         group.co_owner_id.push(user._id);
         const updatedGroup = await Group.findByIdAndUpdate(group._id, {
@@ -140,7 +140,7 @@ export const addMemeber = async (req, res) => {
         const group = await Group.findById(req.body.groupId);
         if(!group) return res.status(404).json({ message: "Group doesn't exist"});
         if(req.body.member_id == group.owner_id) {
-            return res.status(404).json({ message: "Failed to invite. User is owner of this group"});
+            return res.status(403).json({ message: "Failed to invite. User is owner of this group"});
         }
         const user = await User.findById(req.body.member_id);
         if(!user) return res.status(404).json({ message: "User doesn't exist"});
@@ -148,11 +148,11 @@ export const addMemeber = async (req, res) => {
         // Add userid to the memeberId array of group table
         let i =  group.member_id.indexOf(user._id);
         if (i > -1) { 
-            return res.status(404).json({ message: "User is already a member of this group."});
+            return res.status(403).json({ message: "User is already a member of this group."});
         }
         i =  group.co_owner_id.indexOf(user._id);
         if (i > -1) { 
-            return res.status(404).json({ message: "User is already a coowner of this group.  Please change him/her to member role"});
+            return res.status(403).json({ message: "User is already a coowner of this group.  Please change him/her to member role"});
         }
         group.member_id.push(user._id);
         const updatedGroup = await Group.findByIdAndUpdate(group._id, {
@@ -181,7 +181,7 @@ export const removeCoOwner = async (req, res) => {
         const group = await Group.findById(req.body.groupId);
         if(!group) return res.status(404).json({ message: "Group doesn't exist"});
         if(req.body.co_owner_id == group.owner_id) {
-            return res.status(404).json({ message: "Failed to remove. User is owner of this group"});
+            return res.status(403).json({ message: "Failed to remove. User is owner of this group"});
         } 
         const user = await User.findById(req.body.co_owner_id);
         if(!user) return res.status(404).json({ message: "User doesn't exist"});
@@ -189,7 +189,7 @@ export const removeCoOwner = async (req, res) => {
         // Remove userid from the coownerId array of group table
         let i =  group.co_owner_id.indexOf(user._id);
         if (i <= -1) { 
-            return res.status(404).json({ message: "user is not a coowner of this group"});
+            return res.status(403).json({ message: "user is not a coowner of this group"});
         }
         group.co_owner_id.splice(i, 1);
         const updatedGroup = await Group.findByIdAndUpdate(group._id, {
@@ -218,7 +218,7 @@ export const removeMemeber = async (req, res) => {
         const group = await Group.findById(req.body.groupId);
         if(!group) return res.status(404).json({ message: "Group doesn't exist"});
         if(req.body.member_id == group.owner_id) {
-            return res.status(404).json({ message: "Failed to remove. User is owner of this group"});
+            return res.status(403).json({ message: "Failed to remove. User is owner of this group"});
         } 
         const user = await User.findById(req.body.member_id);
         if(!user) return res.status(404).json({ message: "User doesn't exist"});
@@ -226,7 +226,7 @@ export const removeMemeber = async (req, res) => {
         // Remove userid from the memberId array of group table
         let i =  group.member_id.indexOf(user._id);
         if (i <= -1) { 
-            return res.status(404).json({ message: "user is not a memeber of this group or has another role in group"});
+            return res.status(403).json({ message: "user is not a memeber of this group or has another role in group"});
         }
         group.member_id.splice(i, 1);
         const updatedGroup = await Group.findByIdAndUpdate(group._id, {
@@ -255,7 +255,7 @@ export const toCoOwner = async (req, res) => {
         const group = await Group.findById(req.body.groupId);
         if(!group) return res.status(404).json({ message: "Group doesn't exist"});
         if(req.body.member_id == group.owner_id) {
-            return res.status(404).json({ message: "Failed to change. User is owner of this group"});
+            return res.status(403).json({ message: "Failed to change. User is owner of this group"});
         } 
         const user = await User.findById(req.body.member_id);
         if(!user) return res.status(404).json({ message: "User doesn't exist"});
@@ -263,7 +263,7 @@ export const toCoOwner = async (req, res) => {
         // Change in group table
         let i =  group.co_owner_id.indexOf(user._id);
         if (i > -1) { 
-            return res.status(404).json({ message: "Failed to change. User is already coowner of this group"});
+            return res.status(403).json({ message: "Failed to change. User is already coowner of this group"});
         }
         group.co_owner_id.push(user._id);
         i =  group.member_id.indexOf(user._id);
@@ -301,7 +301,7 @@ export const toMember = async (req, res) => {
         const group = await Group.findById(req.body.groupId);
         if(!group) return res.status(404).json({ message: "Group doesn't exist"});
         if(req.body.co_owner_id == group.owner_id) {
-            return res.status(404).json({ message: "Failed to change. User is owner of this group"});
+            return res.status(403).json({ message: "Failed to change. User is owner of this group"});
         } 
         const user = await User.findById(req.body.co_owner_id);
         if(!user) return res.status(404).json({ message: "User doesn't exist"});
@@ -309,7 +309,7 @@ export const toMember = async (req, res) => {
         // change group table
         let i =  group.member_id.indexOf(user._id);
         if (i > -1) { 
-            return res.status(404).json({ message: "Failed to change. User is already member of this group"});
+            return res.status(403).json({ message: "Failed to change. User is already member of this group"});
         }
         group.member_id.push(user._id);
         i =  group.co_owner_id.indexOf(user._id);
@@ -347,7 +347,7 @@ export const addMemberViaLink = async (req, res) => {
         const group = await Group.findById(req.params.groupId);
         if(!group) return res.status(404).json({ message: "Group doesn't exist"});
         if(req.userId == group.owner_id) {
-            return res.status(404).json({ message: "Failed to invite. User is owner of this group"});
+            return res.status(403).json({ message: "Failed to invite. User is owner of this group"});
         }
         const user = await User.findById(req.userId);
         if(!user) return res.status(404).json({ message: "User doesn't exist"});
@@ -355,11 +355,11 @@ export const addMemberViaLink = async (req, res) => {
         // Add userid to the memeberId array of group table
         let i =  group.member_id.indexOf(user._id);
         if (i > -1) { 
-            return res.status(404).json({ message: "User is already a member of this group."});
+            return res.status(403).json({ message: "User is already a member of this group."});
         }
         i =  group.co_owner_id.indexOf(user._id);
         if (i > -1) { 
-            return res.status(404).json({ message: "User is already a coowner of this group.  Please change him/her to member role"});
+            return res.status(403).json({ message: "User is already a coowner of this group.  Please change him/her to member role"});
         }
         group.member_id.push(user._id);
         const updatedGroup = await Group.findByIdAndUpdate(group._id, {
