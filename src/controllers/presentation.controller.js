@@ -138,7 +138,7 @@ export const getPresentationById = async (req, res) => {
 
 export const createPublicPresentation = async (req, res) => {
     const alreadyPresentationExist = await Presentation.findOne({ name: req.body.name});
-    if(alreadyPresentationExist) return res.status(400).json({ message: "Presentation already exists"});
+    if(alreadyPresentationExist) return res.status(3).json({ message: "Presentation already exists"});
 
     // Create new presentation with a default slide and set the default to be the current presented slide
     const newPresentation = new Presentation({name: req.body.name, createdBy: req.userId});
@@ -169,7 +169,7 @@ export const updatePresentationNameById = async (req, res) => {
     // The check whether the presentation exist or not is done in the Middle ware function
 
     const alreadyPresentationExist = await Presentation.findOne({ name: newName});
-    if(alreadyPresentationExist) return res.status(400).json({ message: "This name already exists"});
+    if(alreadyPresentationExist) return res.status(403).json({ message: "This name already exists"});
     
     const updatedPresentation = await Presentation.findByIdAndUpdate(presentationId, {
         name: newName
@@ -185,7 +185,7 @@ export const updatePresentationNameById = async (req, res) => {
 export const deletePresentationById = async (req, res) => {
     const presentation = await Presentation.findByIdAndDelete(req.body.presentationId);
     if(!presentation) return res.status(404).json({ message: "Presentation doesn't exist"});
-    if(presentation.isPresenting) return res.status(400).json({ message: "Can not delete presentation when it is presenting now"});
+    if(presentation.isPresenting) return res.status(403).json({ message: "Can not delete presentation when it is presenting now"});
 
     res.status(200).json({
         status: 'success',
@@ -241,8 +241,8 @@ export const removeCollaborators = async (req, res) => {
 
     const presentation = await Presentation.findById(presentationId);
     if(!presentation) return res.status(404).json({ message: "Presentation doesn't exist"});
-    if(presentation.isPrivate) return res.status(400).json({ message: "Can not remove collaborator of private presentation"});
-    if (!presentation.collaborators.includes(user._id)) return res.status(400).json({ message: "This user is not a collaborator of this presentation"});
+    if(presentation.isPrivate) return res.status(403).json({ message: "Can not remove collaborator of private presentation"});
+    if (!presentation.collaborators.includes(user._id)) return res.status(403).json({ message: "This user is not a collaborator of this presentation"});
     
     const index = presentation.collaborators.indexOf(user._id);
     presentation.collaborators.splice(index, 1);
@@ -289,7 +289,7 @@ export const toPrivate = async (req, res) => {
 export const toPublic = async (req, res) => {
     const presentation = await Presentation.findByIdAndDelete(req.body.presentationId);
     if(!presentation) return res.status(404).json({ message: "Presentation doesn't exist"});
-    if(!presentation.isPrivate) return res.status(400).json({message: "This presentation is already public"});
+    if(!presentation.isPrivate) return res.status(403).json({message: "This presentation is already public"});
 
     const updatedPresentation = await Presentation.findByIdAndUpdate(req.body.presentationId, {
         isPrivate: false,
@@ -306,7 +306,7 @@ export const changeAllSlides = async (req, res) => {
     const { slides, presentationId } = req.body; 
     const presentation = await Presentation.findById(presentationId);
     if(!presentation) return res.status(404).json({ message: "Presentation does not exist"});
-    if(presentation.isPresenting) return res.status(400).json({ message: "Can not edit presentation when it is presenting"});
+    if(presentation.isPresenting) return res.status(403).json({ message: "Can not edit presentation when it is presenting"});
 
     let updatedPresentation;
 
@@ -386,16 +386,16 @@ export const answerSlideQuestion = async (req, res) => {
     const { presentationId, answerId } = req.body; 
     const presentation = await Presentation.findById(presentationId);
     if(!presentation) return res.status(404).json({ message: "Presentation does not exist"});
-    if(!presentation.isPresenting) return res.status(400).json({ message: "This presentation is not presenting"});
-    if(presentation.currentSlide.slideType != "multi") return res.status(400).json({ message: "The current presenting slide is not a mutiple choice slide"});
+    if(!presentation.isPresenting) return res.status(403).json({ message: "This presentation is not presenting"});
+    if(presentation.currentSlide.slideType != "multi") return res.status(403).json({ message: "The current presenting slide is not a mutiple choice slide"});
     
     if(req.userId) {
         let answeredUser = presentation.currentSlide.answeredUser.filter(userId => userId.equals(req.userId));
-        if(answeredUser[0]) return res.status(400).json({ message: "You have answered this question"});
+        if(answeredUser[0]) return res.status(403).json({ message: "You have answered this question"});
     }
 
     let foundAns = presentation.currentSlide.answers.filter(ans => ans._id.equals(answerId));
-    if(!foundAns[0]) return res.status(400).json({ message: "The answer ID does not exist in the current presenting presentation"});
+    if(!foundAns[0]) return res.status(403).json({ message: "The answer ID does not exist in the current presenting presentation"});
     
     // if this is a group presentation
     if(presentation.isPrivate) {
@@ -406,7 +406,7 @@ export const answerSlideQuestion = async (req, res) => {
         let index2 =  roleOfUser.co_owner.indexOf(presentation.groupId);
         let index3 =  roleOfUser.member.indexOf(presentation.groupId);
         if (index1 <= -1 && index2 <= -1 && index3 <= -1) {
-            return res.status(400).json({ message: "This user has to be a member/coowner/owner of this group to join the group presentation"});
+            return res.status(403).json({ message: "This user has to be a member/coowner/owner of this group to join the group presentation"});
         }
 
         presentation.currentSlide.answers.map(ans =>{ 
@@ -465,7 +465,7 @@ export const startPresent = async (req, res) => {
    
     const presentation = await Presentation.findById(presentationId);
     if(!presentation) return res.status(404).json({ message: "Presentation does not exist"});
-    if(presentation.isPresenting) return res.status(400).json({ message: "Presentation is presenting now"});
+    if(presentation.isPresenting) return res.status(403).json({ message: "Presentation is presenting now"});
     
     // Handle group presentation presenting
     if(presentation.isPrivate){
@@ -475,7 +475,7 @@ export const startPresent = async (req, res) => {
         });
 
         if (groupPresentingPresentation) 
-            return res.status(400).json({
+            return res.status(403).json({
                 status: 'failed',
                 message: "There is another presenting presentation in this group",
                 data: {
@@ -500,11 +500,11 @@ export const listAnswersOfSlide = async (req, res) => {
    
     const presentation = await Presentation.findById(presentationId);
     if(!presentation) return res.status(404).json({ message: "Presentation does not exist"});
-    if(!presentation.isPrivate) return res.status(400).json({ message: "This presentation is not a group presentation"});
+    if(!presentation.isPrivate) return res.status(403).json({ message: "This presentation is not a group presentation"});
 
     let foundSlide = presentation.slides.filter(slide => slide._id.equals(slideId));
     if(!foundSlide[0]) return res.status(404).json({ message: "The slide ID does not exist in the presentation"});
-    if(foundSlide[0].slideType != "multi") return res.status(400).json({ message: "The slide is not a mutiple choice slide"});
+    if(foundSlide[0].slideType != "multi") return res.status(403).json({ message: "The slide is not a mutiple choice slide"});
     
     res.status(200).json({
         status: 'success',
@@ -521,7 +521,7 @@ export const stopPresent = async (req, res) => {
    
     const presentation = await Presentation.findById(presentationId);
     if(!presentation) return res.status(404).json({ message: "Presentation does not exist"});
-    if(!presentation.isPresenting) return res.status(400).json({ message: "Presentation is not presenting"});
+    if(!presentation.isPresenting) return res.status(403).json({ message: "Presentation is not presenting"});
     
     const updatedPresentation = await Presentation.findByIdAndUpdate(presentationId, {
         isPresenting: false
@@ -574,7 +574,7 @@ export const isGroupPresenting = async (req, res) => {
 export const createPrivatePresentation = async (req, res) => {
     const {name, groupId} = req.body;
     const alreadyPresentationExist = await Presentation.findOne({name: name});
-    if(alreadyPresentationExist) return res.status(400).json({ message: "Presentation name already exists"});
+    if(alreadyPresentationExist) return res.status(403).json({ message: "Presentation name already exists"});
 
     const group = await Group.findById(groupId);
     if(!group) return res.status(404).json({ message: "Group doesn't exist"});

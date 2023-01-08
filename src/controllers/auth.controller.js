@@ -21,7 +21,7 @@ export const signUp = async (req, res) => {
 
     const alredyUserExist = await User.findOne({ email: newUser.email});
 
-    if(alredyUserExist) return res.status(400).json({ message: "user already exists"});
+    if(alredyUserExist) return res.status(403).json({ message: "user already exists"});
 
     const systemRole = await Role.findOne({name: 'user'})
     newUser.systemRole = systemRole._id;

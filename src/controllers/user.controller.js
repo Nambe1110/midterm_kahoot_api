@@ -110,13 +110,13 @@ export const deleteUserById = async (req, res) => {
 export const activateAccountByToken = async (req, res) => {
     try {
         const user = await User.findById(req.params.userId);
-        if (!user) return res.status(400).send("Invalid user");
+        if (!user) return res.status(404).send("Invalid user");
     
         const token = await Token.findOne({
             userId: user._id,
             token: req.params.token,
         });
-        if (!token) return res.status(400).send("Invalid token");
+        if (!token) return res.status(404).send("Invalid token");
     
         await User.findByIdAndUpdate(user._id, {isActivated: true}, { new: true } );
         await Token.findByIdAndDelete(token._id);
@@ -131,20 +131,20 @@ export const activateAccountByToken = async (req, res) => {
 export const resetPassword = async (req, res) => {
     try {
         const user = await User.findById(req.body.userId);
-        if (!user) return res.status(400).json({message: "Invalid user"});
+        if (!user) return res.status(404).json({message: "Invalid user"});
     
         const token = await Token.findOne({
             userId: user._id,
             token: req.body.token,
             tokenType: "resetPassword"
         });
-        if (!token) return res.status(400).json({message: "Invalid token"});
+        if (!token) return res.status(401).json({message: "Invalid token"});
 
         // Token will expired in 60 minutes after created
         const onehour= 1000 * 60 * 60;
         if (Date.now() - token.createdAt > onehour) {
             await Token.findByIdAndDelete(token._id);
-            return res.status(400).json({message: "Token expired"});
+            return res.status(403).json({message: "Token expired"});
         }
     
         await User.findByIdAndUpdate(user._id, {
