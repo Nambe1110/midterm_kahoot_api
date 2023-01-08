@@ -6,7 +6,8 @@ const answerSchema = new Schema({
     answersList: [{
         userId: {type: Schema.Types.ObjectId, ref:'User'},
         name: {type: String, trim: true},
-        answeredAt: {type: Date, default: new Date()}
+        answeredAt: {type: Date, default: new Date()},
+        answerContent: {type: String, trim: true}
     }]
 }); 
 
