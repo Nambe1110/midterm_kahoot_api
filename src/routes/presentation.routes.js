@@ -27,7 +27,7 @@ router.patch('/vote', [authJwt.verifyIfHaveToken], PresentationsCtrl.answerSlide
 router.post('/create', [authJwt.verifyToken], PresentationsCtrl.createPublicPresentation);
 router.patch('/addCollaborators',  PresentationsCtrl.addCollaborators);
 router.patch('/removeCollaborators',  PresentationsCtrl.removeCollaborators);
-
+router.get('/collaborators/:presentationId', PresentationsCtrl.getCollaboratorsOfPresentation);
 
 // Group presentation //
 router.post('/createPrivate', [authJwt.verifyToken], PresentationsCtrl.createPrivatePresentation);

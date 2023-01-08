@@ -136,6 +136,24 @@ export const getPresentationById = async (req, res) => {
     })
 }
 
+export const getCollaboratorsOfPresentation = async (req, res) => {
+    const presentation = await Presentation.findById(req.params.presentationId).populate([
+        {
+            path: "collaborators",
+            model: 'User'
+        }
+    ]);
+    if(!presentation) return res.status(404).json({ message: "Presentation doesn't exist"});
+    if(presentation.isPrivate) return res.status(403).json({ message: "Presentation is not public presentation"});
+
+    res.status(200).json({
+        status: 'success',
+        data: { 
+            collaborators: presentation.collaborators
+        }
+    })
+}
+
 export const createPublicPresentation = async (req, res) => {
     const alreadyPresentationExist = await Presentation.findOne({ name: req.body.name});
     if(alreadyPresentationExist) return res.status(3).json({ message: "Presentation already exists"});
