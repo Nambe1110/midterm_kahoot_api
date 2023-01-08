@@ -54,10 +54,16 @@ export const isAdmin = async (req, res, next)=> {
 }
 
 export const isOwnerOfGroup = async (req, res, next)=> {
+    let groupId;
+    if(req.body.groupId)   {
+        groupId = req.body.groupId;
+    } else if(req.params.groupId) {
+        groupId = req.params.groupId;
+    }
     const user = await User.findById(req.userId);
     const roleOfUser = user.roles;
     console.log(user);
-    let index =  roleOfUser.owner.indexOf(req.body.groupId);
+    let index =  roleOfUser.owner.indexOf(groupId);
     if (index > -1){
         next();
         return;
@@ -66,10 +72,16 @@ export const isOwnerOfGroup = async (req, res, next)=> {
 }
 
 export const isCoOwnerOfGroup= async (req, res, next)=> {
+    let groupId;
+    if(req.body.groupId)   {
+        groupId = req.body.groupId;
+    } else if(req.params.groupId) {
+        groupId = req.params.groupId;
+    }
     const user = await User.findById(req.userId);
     const roleOfUser = user.roles;
 
-    let index =  roleOfUser.co_owner.indexOf(req.body.groupId);
+    let index =  roleOfUser.co_owner.indexOf(groupId);
     if (index > -1){
         next();
         return;
@@ -78,11 +90,17 @@ export const isCoOwnerOfGroup= async (req, res, next)=> {
 }
 
 export const isOwnerOrCoOwner= async (req, res, next)=> {
+    let groupId;
+    if(req.body.groupId)   {
+        groupId = req.body.groupId;
+    } else if(req.params.groupId) {
+        groupId = req.params.groupId;
+    }
     const user = await User.findById(req.userId);
     const roleOfUser = user.roles;
-
-    let index1 =  roleOfUser.owner.indexOf(req.body.groupId);
-    let index2 =  roleOfUser.co_owner.indexOf(req.body.groupId);
+    console.log(user)
+    let index1 =  roleOfUser.owner.indexOf(groupId);
+    let index2 =  roleOfUser.co_owner.indexOf(groupId);
     if (index1 > -1 || index2 > -1){
         next();
         return;
@@ -91,10 +109,16 @@ export const isOwnerOrCoOwner= async (req, res, next)=> {
 }
 
 export const isMemberOfGroup= async (req, res, next)=> {
+    let groupId;
+    if(req.body.groupId)   {
+        groupId = req.body.groupId;
+    } else if(req.params.groupId) {
+        groupId = req.params.groupId;
+    }
     const user = await User.findById(req.userId);
     const roleOfUser = user.roles;
 
-    let index =  roleOfUser.member.indexOf(req.body.groupId);
+    let index =  roleOfUser.member.indexOf(groupId);
     if (index > -1){
         next();
         return;
@@ -103,6 +127,25 @@ export const isMemberOfGroup= async (req, res, next)=> {
 }
 
 export const isOwnerOfPresentation = async (req, res, next)=> {
+    let presentationId;
+    if(req.body.presentationId) {
+        presentationId = req.body.presentationId;
+    } else {
+        presentationId = req.params.presentationId;
+    }
+    const presentation = await Presentation.findById(presentationId);
+    if(!presentation) return res.status(404).json({ message: "Presentation doesn't exist"});
+
+    console.log(presentation.createdBy)
+    console.log(req.userId)
+    if (presentation.createdBy == req.userId){
+        next();
+        return;
+    }
+    return res.status(403).json({message: "requested owner of this presentation"})
+}
+
+export const verifyDeletePresentation = async (req, res, next)=> {
     let presentationId;
     if(req.body.presentationId) {
         presentationId = req.body.presentationId;

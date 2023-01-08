@@ -91,6 +91,39 @@ export const deleteGroupById = async (req, res) => {
     const group = await Group.findByIdAndDelete(req.body.groupId);
     if(!group) return res.status(404).json({ message: "Group doesn't exist"});
 
+    // *** Remove groupId in owner/co_owner/member array of user table *** //
+    const owner = await User.findById(group.owner_id);
+    // Remove groupId from the roles.owner array of user table
+    const roleOfUser = owner.roles;
+    let index =  roleOfUser.owner.indexOf(group._id);
+    if (index > -1) { 
+        roleOfUser.owner.splice(index, 1);
+    }
+    const updatedUser = await User.findByIdAndUpdate(owner._id ,{roles: roleOfUser}, { new: true })
+
+    for (let i = 0; i < group.co_owner_id.length; i++) {
+        const co_owner = await User.findById(group.co_owner_id[i]);
+        // Remove groupId from the roles.co_owner array of user table
+        const roleOfUser = co_owner.roles;
+        let index =  roleOfUser.co_owner.indexOf(group._id);
+        if (index > -1) { 
+            roleOfUser.co_owner.splice(index, 1);
+        }
+        const updatedUser = await User.findByIdAndUpdate(co_owner._id ,{roles: roleOfUser}, { new: true })
+    }
+
+    for (let i = 0; i < group.member_id.length; i++) {
+        const member = await User.findById(group.member_id[i]);
+        // Remove groupId from the roles.member array of user table
+        const roleOfUser = member.roles;
+        let index =  roleOfUser.member.indexOf(group._id);
+        if (index > -1) { 
+            roleOfUser.member.splice(index, 1);
+        }
+        const updatedUser = await User.findByIdAndUpdate(member._id ,{roles: roleOfUser}, { new: true })
+    }
+
+    // delete all group presenations of this group
     const groupPresentations = await Presentation.deleteMany({
         groupId: group._id,
         isPrivate: true
