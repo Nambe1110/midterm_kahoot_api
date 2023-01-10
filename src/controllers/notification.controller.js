@@ -1,5 +1,6 @@
 import Notification from "../models/Notification.js";
 import Presentation from "../models/Presentation.js";
+import User from "../models/User.js";
 
 export const getAllNotifications = async (req, res) => {
     const notifications = await Notification.find().sort({createdAt:-1}) ;
@@ -29,11 +30,36 @@ export const addNotification = async (req, res) => {
     const {content, userId} = req.body;
     const newNotification = new Notification({content, userId});
 
+    const user = await User.findById(userId);
+    if(!user) return res.status(404).json({ message: "User doesn't exist"});
+
     const NotificationSaved = await newNotification.save();
     res.status(200).json({
         status: 'success',
         data: { 
             NotificationSaved
+        }
+    })
+}
+
+export const addManyNotifications = async (req, res) => {
+    const {content, userIdList} = req.body;
+    let NotificationsSaved;
+
+    userIdList.forEach(async (userId) => {
+        const newNotification = new Notification({content, userId});
+        const user = await User.findById(userId);
+        if(user) {
+            const notificationSaved = await newNotification.save();
+            NotificationsSaved.push(notificationSaved);
+        }
+    })
+    
+
+    res.status(200).json({
+        status: 'success',
+        data: { 
+            NotificationsSaved
         }
     })
 }
