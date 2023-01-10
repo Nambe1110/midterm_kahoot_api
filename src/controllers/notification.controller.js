@@ -44,21 +44,21 @@ export const addNotification = async (req, res) => {
 
 export const addManyNotifications = async (req, res) => {
     const {content, userIdList} = req.body;
-    let NotificationsSaved;
+    let NotificationsSaved = [];
 
-    userIdList.forEach(async (userId) => {
-        const newNotification = new Notification({content, userId});
-        const user = await User.findById(userId);
+    for (let i = 0; i < userIdList.length; i++) {
+        const user = await User.findById(userIdList[i]);
         if(user) {
+            const userId = userIdList[i];
+            const newNotification = new Notification({content, userId});
             const notificationSaved = await newNotification.save();
             NotificationsSaved.push(notificationSaved);
         }
-    })
-    
+    }
 
     res.status(200).json({
         status: 'success',
-        data: { 
+        data: {
             NotificationsSaved
         }
     })
