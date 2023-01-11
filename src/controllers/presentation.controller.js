@@ -549,12 +549,13 @@ export const startPresent = async (req, res) => {
                     groupPresentingPresentation
                 }
             });
+    } // Handle public presentation presenting
+    else {
+        if (!presentation.createdBy.equals(req.userId)) {
+            return res.status(401).json({ message: "Requested owner role of this public presentation"});
+        }
     }
-    
-    // Handle public presentation presenting
-    if (!presentation.createdBy.equals(req.userId)) {
-        return res.status(401).json({ message: "Requested owner role of this public presentation"});
-    }
+
     const updatedPresentation = await Presentation.findByIdAndUpdate(presentationId, {
         isPresenting: true
     }, { new: true })
